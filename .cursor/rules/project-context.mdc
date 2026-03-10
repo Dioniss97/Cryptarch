@@ -16,7 +16,7 @@ Scaffold para una plataforma SaaS multi-tenant RAG + Actions. Admins gestionan u
 | `workers/vectorizer/` | Python 3.11 | Worker Redis: extracción, chunking, embeddings, índice Qdrant |
 | `packages/shared/` | — | Contratos/constantes compartidos |
 | `infra/` | Docker Compose | Entorno local |
-| `docs/` | Markdown | Arquitectura, modelo de dominio, sprints |
+| `docs/` | Markdown | Arquitectura, modelo de dominio, tareas (`docs/sprints/tasks.md`) |
 
 ## Infraestructura
 
