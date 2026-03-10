@@ -1,0 +1,10 @@
+---
+description: Worker de ingestión — cola Redis, extracción, chunking, Qdrant; skill vectorization-pipeline
+globs: "workers/vectorizer/**/*.py"
+alwaysApply: false
+---
+
+# Worker (vectorizer)
+
+- Al implementar o revisar la cola/worker de ingestión, **leer y aplicar** `.cursor/skills/vectorization-pipeline/SKILL.md`.
+- Transiciones de estado, extracción, chunking, embeddings, upserts a Qdrant, errores visibles para admin. Jobs idempotentes y retry-safe.

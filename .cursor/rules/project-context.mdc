@@ -1,0 +1,52 @@
+---
+description: Contexto del proyecto — producto, stack, dominio, reglas no negociables
+alwaysApply: true
+---
+
+# Contexto del proyecto
+
+Scaffold para una plataforma SaaS multi-tenant RAG + Actions. Admins gestionan usuarios, grupos, tags, filtros, conectores, acciones y documentos. Usuarios finales solo ven un chat que consulta documentos permitidos (RAG) y ejecuta acciones permitidas (conectores), todo acotado por tenant y permisos de grupo.
+
+## Stack y layout (monorepo)
+
+| Ruta | Runtime | Propósito |
+|------|---------|-----------|
+| `apps/api/` | Python 3.11 / FastAPI | API. Capas: presentation, application, domain, infrastructure, tests |
+| `apps/web/` | Node 20 / React | Admin + chat. Rutas admin y usuario separadas |
+| `workers/vectorizer/` | Python 3.11 | Worker Redis: extracción, chunking, embeddings, índice Qdrant |
+| `packages/shared/` | — | Contratos/constantes compartidos |
+| `infra/` | Docker Compose | Entorno local |
+| `docs/` | Markdown | Arquitectura, modelo de dominio, sprints |
+
+## Infraestructura
+
+```bash
+docker compose -f infra/docker-compose.dev.yml up -d
+docker compose -f infra/docker-compose.dev.yml down
+cp infra/.env.example .env
+```
+
+Puertos: API 8000, Web 3000, Postgres 5432, Redis 6379, Qdrant 6333/6334. DB por defecto: `appdb` / `postgres` / `postgres`.
+
+## Modelo de dominio (crítico)
+
+- **Tags** son solo metadata. Los permisos vienen de filtros guardados y de bindings de grupos.
+- Entidades tienen **tags** (users, actions, documents).
+- **SavedFilters** definen lógica de selección (AND de tags).
+- **Groups** vinculan saved filters (user filters + action filters + document filters).
+- Permisos efectivos de un usuario = **unión** de permisos de todos los grupos a los que pertenece.
+
+Resolución: grupos cuyos user-filters matchean al usuario → unión de actions de los action-filters de esos grupos → unión de documents de los document-filters. **Toda entidad estructurada es tenant-scoped** (`tenant_id`); filtros de tenant se aplican antes que los de permisos.
+
+## Reglas no negociables
+
+- `tenant_id` en toda entidad estructurada; aplicar en servidor, no confiar en cliente.
+- Tags solo metadata — no guardar permisos en tags.
+- Endpoints admin inaccesibles para usuarios normales.
+- Credenciales de conectores separadas de las definiciones de acciones.
+- TDD para lógica crítica de backend.
+- Al cambiar reglas de dominio, actualizar docs en el mismo cambio.
+
+## Pipeline de ingestión (fase 1)
+
+Extracción solo texto: PDF, TXT, CSV (sin OCR). Estados: `queued` → `processing` → `indexed` | `error`. Flujo: admin sube → API crea metadata y encola job Redis → worker extrae/chunkea/embebe → indexa en Qdrant → actualiza estado.

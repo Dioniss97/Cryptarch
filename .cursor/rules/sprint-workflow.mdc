@@ -1,0 +1,45 @@
+---
+description: Workflow de sprints — siguiente sprint, iniciar, auditar; uso de skills
+alwaysApply: true
+---
+
+# Workflow de sprints (Cursor)
+
+Los sprints se trackean en `docs/sprints/sprint-checklist.md`. En Cursor no hay comandos slash; pide en lenguaje natural, por ejemplo: "siguiente sprint", "inicia el sprint 02", "audita el sprint 01".
+
+## Sprint next
+
+Cuando pidan el **siguiente sprint** o "sprint next":
+
+1. Leer `docs/sprints/sprint-checklist.md`.
+2. Identificar el primer sprint no marcado como completado.
+3. Mostrar: archivo del sprint, por qué es el siguiente, prerequisitos.
+4. Resumir alcance y proponer las primeras 5 tareas (orden TDD).
+5. Si el checklist no coincide con los ficheros en `docs/sprints/`, reportar la inconsistencia.
+
+## Sprint start &lt;sprint-id&gt;
+
+Cuando pidan **iniciar un sprint** (ej. "sprint start sprint-02-auth-admin-api"):
+
+1. Abrir `docs/sprints/{sprint-id}.md` (o el fichero que coincida con el id).
+2. Resumir: objetivo, límites de alcance, criterios de aceptación, dependencias.
+3. Proponer las primeras 5 tareas en orden TDD; empezar solo con la tarea 1 salvo que pidan más.
+4. No saltar tests en comportamiento crítico de backend.
+5. **Aplicar la skill correspondiente** según el tipo de trabajo:
+   - Dominio/API/backend → leer y seguir `.cursor/skills/fastapi-tdd/SKILL.md`
+   - Páginas admin React → leer y seguir `.cursor/skills/react-admin-slice/SKILL.md`
+   - Pipeline de ingestión/worker → leer y seguir `.cursor/skills/vectorization-pipeline/SKILL.md`
+   - Tras cambios de implementación → aplicar `.cursor/skills/docs-sync/SKILL.md`
+
+Orden de construcción: foundation → domain+schema → auth+admin API → admin UI → ingestion+vectorizer → chat+RAG+actions → hardening.
+
+## Sprint audit &lt;sprint-id&gt;
+
+Cuando pidan **auditar un sprint** antes de marcarlo hecho:
+
+1. Abrir el fichero del sprint en `docs/sprints/`.
+2. Extraer criterios de aceptación / ítems del checklist.
+3. Revisar código, tests, docs y config afectados.
+4. Entregar auditoría estricta: completo / parcial / faltante / riesgoso.
+5. Comprobar que existan tests para comportamiento crítico de backend.
+6. Recomendar pasos concretos antes de marcar el sprint como hecho. No marcar completo por tu cuenta salvo que lo pidan.

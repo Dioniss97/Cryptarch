@@ -1,0 +1,11 @@
+---
+description: Convenciones frontend admin — patrones reutilizables, skill react-admin-slice
+globs: "apps/web/**/*.{jsx,tsx,js,ts}"
+alwaysApply: false
+---
+
+# Frontend (Admin / Web)
+
+- Al construir o refinar una página/funcionalidad de admin, **leer y aplicar** `.cursor/skills/react-admin-slice/SKILL.md`.
+- Slice de feature: ruta + cliente API + componentes + validación + estados de carga/error.
+- Si el contrato del backend no cuadra, parar y reportarlo explícitamente.

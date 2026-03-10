@@ -1,15 +1,24 @@
 # Claude Code Project Context Pack
 
-This repository is a **context-first scaffold** for Claude Code (CLI) to help build a multi-tenant RAG + Actions platform using **FastAPI + React + Postgres + Qdrant + Redis workers**.
+This repository is a **context-first scaffold** for building a multi-tenant RAG + Actions platform using **FastAPI + React + Postgres + Qdrant + Redis workers**. It works with **Claude Code (CLI)** and with **Cursor**.
 
 It intentionally focuses on:
-- project memory (`.claude/CLAUDE.md`)
-- reusable skills (slash commands)
-- subagents
+- project memory (`.claude/CLAUDE.md`; en Cursor: `.cursor/rules/` + `AGENTS.md`)
+- reusable skills (slash commands en Claude Code; skills en `.cursor/skills/` en Cursor)
+- roles/agents (subagents en Claude Code; guía en `AGENTS.md` en Cursor)
 - sprint docs
 - architecture/domain rules
 
-It does **not** include full application code yet. The goal is to let Claude Code generate code consistently from a strong project contract.
+It does **not** include full application code yet. The goal is to generate code consistently from a strong project contract.
+
+## Uso con Cursor
+
+Abre el proyecto en Cursor. Las reglas en `.cursor/rules/` y las skills en `.cursor/skills/` se aplican automáticamente. Para sprints, pide en lenguaje natural, por ejemplo:
+- *"¿Cuál es el siguiente sprint?"* / *"Siguiente sprint"*
+- *"Inicia el sprint 02"* / *"Sprint start sprint-02-auth-admin-api"*
+- *"Audita el sprint 01"*
+
+Consulta `AGENTS.md` para saber qué skill aplicar en cada tipo de tarea (backend, admin UI, ingestión, etc.).
 
 ## Project objective
 
@@ -33,11 +42,11 @@ Instead:
    - one or more document filters
 4. Effective permissions for a user = union of the permissions from all groups the user belongs to
 
-## Recommended first use with Claude Code
+## Primer uso con Claude Code (CLI)
 
-1. Open this repo in terminal.
-2. Start Claude Code.
-3. Run `/memory` and verify `.claude/CLAUDE.md` is loaded.
-4. Run `/agents` and inspect project subagents.
-5. Run `/sprint-next` to pick the next sprint.
-6. Run `/sprint-start sprint-00-foundation` to begin implementation.
+1. Abre el repo en terminal.
+2. Inicia Claude Code.
+3. Ejecuta `/memory` y comprueba que `.claude/CLAUDE.md` está cargado.
+4. Ejecuta `/agents` y revisa los subagentes.
+5. Ejecuta `/sprint-next` para elegir el siguiente sprint.
+6. Ejecuta `/sprint-start sprint-00-foundation` para empezar.

@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+httpx
+pytest
+sqlalchemy>=2.0
+alembic
+psycopg2-binary
+python-jose[cryptography]
+bcrypt
+bcrypt<4.1
