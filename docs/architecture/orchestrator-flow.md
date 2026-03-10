@@ -2,6 +2,8 @@
 
 El **agente principal** en Cursor actúa como **orquestador**: no ejecuta tests ni git directamente; delega en subagentes y coordina el flujo hasta el éxito.
 
+(Shell por defecto: ver regla **project-context** — Git Bash / sintaxis bash.)
+
 ## Subagentes disponibles
 
 | Subagente | Definición | Responsabilidad |

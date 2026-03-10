@@ -18,6 +18,15 @@ Scaffold para una plataforma SaaS multi-tenant RAG + Actions. Admins gestionan u
 | `infra/` | Docker Compose | Entorno local |
 | `docs/` | Markdown | Arquitectura, modelo de dominio, tareas (`docs/sprints/tasks.md`) |
 
+## Shell por defecto (importante para agentes y subagentes)
+
+**Se usa Git Bash (bash) por defecto**, no PowerShell. Al ejecutar comandos en terminal o invocar al subagente shell:
+
+- Usar **sintaxis bash**: `&&` para encadenar, `;` para secuenciar, rutas con `/` si se escriben a mano.
+- No usar sintaxis específica de PowerShell (p. ej. `&&` falla en PowerShell antiguo). Si el entorno abre PowerShell, indicar que se use Git Bash o que los comandos deben ser compatibles con bash.
+
+Así se evita que los agentes/subagentes reciban errores por enviar comandos de Linux a PowerShell.
+
 ## Infraestructura
 
 ```bash
