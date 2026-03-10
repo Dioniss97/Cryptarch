@@ -24,7 +24,11 @@ _Session = None
 
 
 def _get_test_url():
-    return os.environ.get("DATABASE_URL_TEST", os.environ.get("DATABASE_URL", "")).strip()
+    url = os.environ.get("DATABASE_URL_TEST", os.environ.get("DATABASE_URL", "")).strip()
+    if url:
+        return url
+    # Fallback: use app DB so tests run without DATABASE_URL_TEST or separate appdb_test
+    return (DATABASE_URL or "") or ""
 
 
 def _can_connect_postgres():
