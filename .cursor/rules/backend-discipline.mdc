@@ -7,6 +7,7 @@ alwaysApply: false
 # Backend (API)
 
 - Seguir TDD: contrato y tests primero, implementación mínima, refactor, verificar límites de tenant y permisos.
+- **Ejecutar tests** usando el subagente **test-runner** cuando exista; no invocar `pytest` en el terminal si hay subagente disponible.
 - Al implementar una feature nueva de dominio o API, **leer y aplicar** `.cursor/skills/fastapi-tdd/SKILL.md`.
 - Capas: presentation → application → domain → infrastructure; tests en `tests/`.
 - Marcar acoplamientos ocultos y fugas de tenant.

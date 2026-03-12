@@ -1,0 +1,98 @@
+---
+description: Engram como memoria persistente del proyecto — familias docs/*, tasks/*, knowledge/*
+alwaysApply: true
+---
+
+# Engram Memory Workflow
+
+This project uses Engram as persistent development memory. **Casi todo vive en Engram**: estado de sprints y tasks, criterios de aceptación, siguiente tarea, docs digeridos y conocimiento reutilizable. Los .md del repo son referencia o semilla para poblar Engram; una vez creadas las memorias, la fuente de verdad es Engram.
+
+## Memory topic families
+
+| Family | Purpose |
+|--------|---------|
+| **sprints/** | One memory per sprint (`sprints/sprint-02`, etc.): goal, scope, acceptance criteria, list of task IDs, **Status**. Source of truth for "what is this sprint" and "is it done". |
+| **tasks/** | One evolving memory per task (`tasks/<task_id>`): goal, scope, **Status**. Source of truth for "what to do next" and "what was done". |
+| **docs/** | Digested documentation and architecture. Summaries of README or scattered docs. |
+| **knowledge/** | Reusable discoveries not tied to a single task: debugging findings, patterns, conventions, gotchas. |
+
+## Workflow
+
+**Before starting work**
+
+- Search Engram for relevant `docs/*`, `tasks/*`, and `knowledge/*` (e.g. `mem_search` with 2–5 keywords).
+- Use progressive disclosure: `mem_search` → `mem_timeline` (if needed) → `mem_get_observation` for full content.
+
+**When a Jira/task is introduced**
+
+- Create or update memory with `topic_key`: `tasks/<task_id>`.
+- Store task context: goal, expected scope, suspected files.
+
+**When a sprint is started** (see `.cursor/skills/sprint-start/SKILL.md`)
+
+- Create or update `sprints/sprint-XX` in Engram with: goal, scope, acceptance criteria, list of task IDs (from the sprint doc or from `docs/sprints/tasks.md`), **Status: pending**. Create one memory per task `tasks/task-XX` with description and **Status: pending** if it doesn’t exist yet. From then on, Engram is the source of truth for that sprint.
+
+**During development**
+
+- If a reusable discovery appears, store it under `knowledge/<topic>`.
+- Prefer updating existing `topic_key` instead of creating duplicates.
+
+**When finishing a task**
+
+- Update the same `tasks/<task_id>` with: What, Why, Where, Learned (and outcome).
+- Set **Status** (see below) to `done` when tests pass, code is committed and a PR is opened — so the agent (or a subagent) can work autonomously and the human only reviews PRs.
+
+## Task and sprint status (autonomous workflow)
+
+Every task memory (`tasks/<task_id>`) and every sprint memory (`sprints/sprint-XX`, e.g. `sprints/sprint-02`) must include in its **content** a line:
+
+`Status: pending | in_progress | blocked | done`
+
+- **pending**: not started.
+- **in_progress**: someone is working on it (agent or human).
+- **blocked**: blocked; add a short reason in the same memory if useful.
+- **done**: tests passed, changes committed, PR opened (or merged); no further work until next task.
+
+**When to set status**
+
+- Start task → update `tasks/<id>` with `Status: in_progress`.
+- Blocked → `Status: blocked` (and note why).
+- Tests pass + commit + PR opened → `Status: done`; optionally update `sprints/sprint-XX` (e.g. move sprint to `in_progress` when first task starts, or to `done` when all its tasks are done).
+
+**How to find work in Engram** (consult Engram first, not the .md files)
+
+- Pending tasks: `mem_search` e.g. "Status: pending" or "tasks pending".
+- Work in progress: "Status: in_progress" or "tasks in progress".
+- Blocked: "Status: blocked" or "sprint blocked".
+- Sprints: "sprints sprint-02" or "Status: in_progress sprint". Sprint memory holds goal, criteria, and task list.
+
+No separate "checklist" type: status lives inside the same observation content for `tasks/<id>` and `sprints/sprint-XX`. The agent can be autonomous: pick pending task → set in_progress → implement → tests → commit → PR → set done → optionally update sprint; human reviews PRs on GitHub.
+
+## Memory format
+
+Keep entries **concise and structured**:
+
+```
+What:
+Why:
+Where:
+Learned:
+Status: pending | in_progress | blocked | done   # mandatory for tasks/<id> and sprints/sprint-XX
+```
+
+## Rules
+
+- Prefer updating existing `topic_key` instead of creating duplicates.
+- Sprints and tasks live in Engram; use `sprints/sprint-XX` and `tasks/task-XX` as the source of truth. Markdown files are for bootstrap or human reference only.
+- Do not store trivial thoughts or intermediate reasoning.
+- Store only technical insights useful for future work.
+- Keep entries short and precise.
+- After context reset or compaction, call `mem_context` to recover state.
+
+## Commands (natural language)
+
+In Cursor there are no slash commands; use natural language:
+
+- **Start a task** — e.g. “task SC-209” or “empieza la tarea SC-209”: ask for task ID if missing, search/create `tasks/<id>`, load relevant `docs/*` and `knowledge/*`, then work and update the task memory on completion.
+- **Digest documentation** — e.g. “doc” or “digiere la documentación de X”: extract important technical info, summarize architecture/conventions/workflows, store under `docs/<topic>`. Keep concise; avoid copying large blocks.
+- **Store a discovery** — e.g. “knowledge” or “guarda este descubrimiento”: define `topic_key`: `knowledge/<topic>`, save with What/Why/Where/Learned.

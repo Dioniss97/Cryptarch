@@ -1,45 +1,67 @@
 ---
-description: Workflow de sprints — siguiente sprint, iniciar, auditar; uso de skills
+description: Workflow por tareas y Engram — casi todo en Engram; uso de skills por ámbito
 alwaysApply: true
 ---
 
-# Workflow de sprints (Cursor)
+# Workflow por tareas (Cursor)
 
-Los sprints se trackean en `docs/sprints/sprint-checklist.md`. En Cursor no hay comandos slash; pide en lenguaje natural, por ejemplo: "siguiente sprint", "inicia el sprint 02", "audita el sprint 01".
+**Casi todo vive en Engram**: estado de sprints y tasks, criterios, siguiente tarea. Familias: `sprints/*`, `tasks/*`, `docs/*`, `knowledge/*`. Los .md de sprints/tasks son referencia o semilla; consultar Engram primero. En Cursor no hay comandos slash; usar lenguaje natural: "task SC-209", "siguiente tarea", "digiere la doc de la API", "guarda este descubrimiento".
 
-## Sprint next
+## Task (iniciar una tarea)
 
-Cuando pidan el **siguiente sprint** o "sprint next":
+Cuando pidan **empezar una tarea** o mencionen un task ID (ej. "task SC-209", "tarea SC-209"):
 
-1. Leer `docs/sprints/sprint-checklist.md`.
-2. Identificar el primer sprint no marcado como completado.
-3. Mostrar: archivo del sprint, por qué es el siguiente, prerequisitos.
-4. Resumir alcance y proponer las primeras 5 tareas (orden TDD).
-5. Si el checklist no coincide con los ficheros en `docs/sprints/`, reportar la inconsistencia.
+1. Pedir el Jira/task ID si no lo han dado.
+2. Buscar en Engram `topic_key`: `tasks/<task_id>`. Si no existe, crear memoria con contexto de la tarea y `Status: pending` (la fuente de verdad es Engram).
+3. **Poner en la memoria** `Status: in_progress` (actualizar la misma observación con topic_key).
+4. Recuperar contexto útil desde Engram: `sprints/*`, `tasks/*`, `docs/*`, `knowledge/*` (mem_search, luego mem_get_observation si hace falta).
+5. Dar un resumen técnico breve antes de empezar.
+6. Durante el trabajo: guardar descubrimientos reutilizables en `knowledge/<topic>`.
+7. Al terminar: tests pasando, commit, abrir PR; luego actualizar `tasks/<task_id>` con What / Why / Where / Learned y **Status: done**. Opcionalmente actualizar `sprints/sprint-XX` si el sprint queda completo.
 
-## Sprint start &lt;sprint-id&gt;
+**Orquestador y subagentes:** El agente principal orquesta; no ejecuta tests ni git a mano. Ver `docs/architecture/orchestrator-flow.md`. Subagentes a usar:
+- **test-runner**: ejecutar tests. Si fallan, reportar; el orquestador invocará al **debugger** y luego relanzará test-runner hasta que pasen.
+- **git-pr**: ramas por tarea (`task/<id>`), Conventional Commits, push y PRs.
+- **debugger**: cuando test-runner reporte fallos, pasarle el contexto para que diagnostique y corrija.
+- **ai-worker**: cuando se delegue implementación de una tarea, invocar con la misión y el contexto (o dejar que consulte Engram si tiene acceso).
 
-Cuando pidan **iniciar un sprint** (ej. "sprint start sprint-02-auth-admin-api"):
+Aplicar la skill del ámbito: backend/API → `fastapi-tdd`, admin React → `react-admin-slice`, ingestión/worker → `vectorization-pipeline`, tras implementar → `docs-sync`. Memoria → `engram-memory`.
 
-1. Abrir `docs/sprints/{sprint-id}.md` (o el fichero que coincida con el id).
-2. Resumir: objetivo, límites de alcance, criterios de aceptación, dependencias.
-3. Proponer las primeras 5 tareas en orden TDD; empezar solo con la tarea 1 salvo que pidan más.
-4. No saltar tests en comportamiento crítico de backend.
-5. **Aplicar la skill correspondiente** según el tipo de trabajo:
-   - Dominio/API/backend → leer y seguir `.cursor/skills/fastapi-tdd/SKILL.md`
-   - Páginas admin React → leer y seguir `.cursor/skills/react-admin-slice/SKILL.md`
-   - Pipeline de ingestión/worker → leer y seguir `.cursor/skills/vectorization-pipeline/SKILL.md`
-   - Tras cambios de implementación → aplicar `.cursor/skills/docs-sync/SKILL.md`
+**Flujo autónomo:** Si piden "siguiente tarea" o el agente gestiona trabajo sin PR concreto: buscar en Engram "Status: pending" (o "tasks pending"); elegir una tarea; ponerla en `in_progress`; implementar → tests → commit → PR → marcar `done`. Opcionalmente actualizar el sprint. El humano solo revisa PRs en GitHub.
 
-Orden de construcción: foundation → domain+schema → auth+admin API → admin UI → ingestion+vectorizer → chat+RAG+actions → hardening.
+## Doc (digerir documentación)
 
-## Sprint audit &lt;sprint-id&gt;
+Cuando pidan **digerir documentación** o "doc" (ej. README, arquitectura):
 
-Cuando pidan **auditar un sprint** antes de marcarlo hecho:
+1. Extraer información técnica importante (arquitectura, convenciones, flujos).
+2. Resumir de forma operativa y concisa.
+3. Guardar en Engram con `topic_key`: `docs/<tema>` (ej. `docs/fastapi-structure`).
+4. No copiar bloques grandes; solo lo útil para trabajo futuro.
 
-1. Abrir el fichero del sprint en `docs/sprints/`.
-2. Extraer criterios de aceptación / ítems del checklist.
-3. Revisar código, tests, docs y config afectados.
-4. Entregar auditoría estricta: completo / parcial / faltante / riesgoso.
-5. Comprobar que existan tests para comportamiento crítico de backend.
-6. Recomendar pasos concretos antes de marcar el sprint como hecho. No marcar completo por tu cuenta salvo que lo pidan.
+## Knowledge (registrar descubrimiento)
+
+Cuando aparezca un **descubrimiento técnico** reutilizable (bug, patrón, gotcha) o pidan "guarda este descubrimiento":
+
+1. Definir `topic_key`: `knowledge/<topic>`.
+2. Guardar con formato: What / Why / Where / Learned.
+3. Mantener la entrada breve y estructurada.
+
+## Iniciar por sprint (opcional)
+
+Si piden "siguiente sprint" o "primeras tareas del sprint 02":
+
+1. Buscar en Engram "Status: pending" o "sprints sprint-02" para ver qué hay pendiente o en progreso.
+2. Leer `docs/sprints/tasks.md` y el sprint correspondiente.
+3. Proponer la siguiente tarea pendiente (o crearla en Engram con `tasks/<id>` y `Status: in_progress`).
+4. Seguir el flujo Task anterior; al marcar una tarea `done`, opcionalmente actualizar `sprints/sprint-XX`.
+
+Los ficheros `docs/sprints/sprint-*.md` siguen existiendo como referencia de alcance y criterios de aceptación. El estado (pending/in_progress/blocked/done) vive en Engram en cada `tasks/<id>` y opcionalmente en `sprints/sprint-XX`.
+
+## Auditar un sprint o tarea (opcional)
+
+Si piden auditar antes de dar por cerrado:
+
+1. Revisar criterios de aceptación (tasks.md o sprint-*.md).
+2. Revisar código, tests y docs afectados.
+3. Entregar auditoría: completo / parcial / faltante / riesgoso.
+4. Recomendar pasos concretos; no marcar completo sin petición explícita.
