@@ -9,6 +9,9 @@ from sqlalchemy.orm import Session
 
 from dependencies import CurrentUser, get_db, require_admin
 from domain.models import (
+    Action,
+    ActionTag,
+    Connector,
     Group,
     GroupActionFilter,
     GroupDocumentFilter,
@@ -643,5 +646,304 @@ def delete_group(
     db.query(GroupActionFilter).filter(GroupActionFilter.group_id == g.id).delete()
     db.query(GroupDocumentFilter).filter(GroupDocumentFilter.group_id == g.id).delete()
     db.delete(g)
+    db.commit()
+    return None
+
+
+# --- Connectors CRUD (tenant-scoped) ---
+
+
+class ConnectorCreateBody(BaseModel):
+    base_url: str
+    auth_config: dict | None = None
+
+
+class ConnectorUpdateBody(BaseModel):
+    base_url: str | None = None
+    auth_config: dict | None = None
+
+
+def _get_connector_by_id(db: Session, connector_id: str, tenant_id: str) -> Connector | None:
+    """Return Connector if exists and belongs to tenant; else None."""
+    cid = _parse_uuid(connector_id)
+    if cid is None:
+        return None
+    c_hex, c_canonical = cid.hex, str(cid)
+    obj = db.query(Connector).filter(
+        or_(Connector.id == c_hex, Connector.id == c_canonical)
+    ).first()
+    if not obj or _normalize_uuid(str(obj.tenant_id)) != _normalize_uuid(tenant_id):
+        return None
+    return obj
+
+
+def _connector_to_response(c: Connector) -> dict:
+    """Serialize Connector to JSON. IDs in canonical form."""
+    ci = _parse_uuid(str(c.id)) if c.id else None
+    ti = _parse_uuid(str(c.tenant_id)) if c.tenant_id else None
+    return {
+        "id": str(ci) if ci else str(c.id),
+        "tenant_id": str(ti) if ti else str(c.tenant_id),
+        "base_url": c.base_url,
+        "auth_config": c.auth_config,
+    }
+
+
+@router.get("/connectors")
+def list_connectors(
+    current_user: CurrentUser = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """List connectors of the current tenant."""
+    connectors = (
+        db.query(Connector)
+        .filter(Connector.tenant_id == current_user.tenant_id)
+        .all()
+    )
+    return [_connector_to_response(c) for c in connectors]
+
+
+@router.get("/connectors/{connector_id}")
+def get_connector(
+    connector_id: str,
+    current_user: CurrentUser = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Get connector by id; 404 if not in current tenant."""
+    c = _get_connector_by_id(db, connector_id, current_user.tenant_id)
+    if not c:
+        raise HTTPException(status_code=404, detail="Connector not found")
+    return _connector_to_response(c)
+
+
+@router.post("/connectors", status_code=201)
+def create_connector(
+    body: ConnectorCreateBody,
+    current_user: CurrentUser = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Create connector in current tenant. tenant_id from JWT only."""
+    conn = Connector(
+        tenant_id=current_user.tenant_id,
+        base_url=body.base_url,
+        auth_config=body.auth_config,
+    )
+    db.add(conn)
+    db.commit()
+    db.refresh(conn)
+    return _connector_to_response(conn)
+
+
+@router.patch("/connectors/{connector_id}")
+def update_connector(
+    connector_id: str,
+    body: ConnectorUpdateBody,
+    current_user: CurrentUser = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Update connector; 404 if not in current tenant."""
+    c = _get_connector_by_id(db, connector_id, current_user.tenant_id)
+    if not c:
+        raise HTTPException(status_code=404, detail="Connector not found")
+    if body.base_url is not None:
+        c.base_url = body.base_url
+    if body.auth_config is not None:
+        c.auth_config = body.auth_config
+    db.commit()
+    db.refresh(c)
+    return _connector_to_response(c)
+
+
+@router.delete("/connectors/{connector_id}", status_code=204)
+def delete_connector(
+    connector_id: str,
+    current_user: CurrentUser = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Delete connector; 404 if not in current tenant. 409 if connector has actions."""
+    c = _get_connector_by_id(db, connector_id, current_user.tenant_id)
+    if not c:
+        raise HTTPException(status_code=404, detail="Connector not found")
+    has_actions = db.query(Action).filter(Action.connector_id == c.id).first() is not None
+    if has_actions:
+        raise HTTPException(status_code=409, detail="Connector has associated actions")
+    db.delete(c)
+    db.commit()
+    return None
+
+
+# --- Actions CRUD (tenant-scoped) ---
+
+
+class ActionCreateBody(BaseModel):
+    connector_id: uuid.UUID
+    method: str
+    path: str
+    name: str | None = None
+    request_config: dict | None = None
+    tag_ids: list[uuid.UUID] = []
+
+
+class ActionUpdateBody(BaseModel):
+    method: str | None = None
+    path: str | None = None
+    name: str | None = None
+    request_config: dict | None = None
+    tag_ids: list[uuid.UUID] | None = None
+
+
+def _get_action_by_id(db: Session, action_id: str, tenant_id: str) -> Action | None:
+    """Return Action if exists and belongs to tenant; else None."""
+    aid = _parse_uuid(action_id)
+    if aid is None:
+        return None
+    a_hex, a_canonical = aid.hex, str(aid)
+    obj = db.query(Action).filter(or_(Action.id == a_hex, Action.id == a_canonical)).first()
+    if not obj or _normalize_uuid(str(obj.tenant_id)) != _normalize_uuid(tenant_id):
+        return None
+    return obj
+
+
+def _action_tag_ids(db: Session, action_id: str) -> list[str]:
+    """Return list of tag_id (canonical) for an action."""
+    rows = (
+        db.query(ActionTag.tag_id)
+        .filter(ActionTag.action_id == action_id)
+        .all()
+    )
+    return [str(_parse_uuid(r[0]) or r[0]) for r in rows]
+
+
+def _action_to_response(
+    a: Action,
+    tag_ids: list[str] | None = None,
+    db: Session | None = None,
+) -> dict:
+    """Serialize Action to JSON; tag_ids from db if not provided."""
+    if tag_ids is None and db is not None:
+        tag_ids = _action_tag_ids(db, a.id)
+    elif tag_ids is None:
+        tag_ids = []
+    ai = _parse_uuid(str(a.id)) if a.id else None
+    ti = _parse_uuid(str(a.tenant_id)) if a.tenant_id else None
+    ci = _parse_uuid(str(a.connector_id)) if a.connector_id else None
+    return {
+        "id": str(ai) if ai else str(a.id),
+        "tenant_id": str(ti) if ti else str(a.tenant_id),
+        "connector_id": str(ci) if ci else str(a.connector_id),
+        "method": a.method,
+        "path": a.path,
+        "name": a.name,
+        "request_config": a.request_config,
+        "tag_ids": tag_ids,
+    }
+
+
+@router.get("/actions")
+def list_actions(
+    connector_id: uuid.UUID | None = None,
+    current_user: CurrentUser = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """List actions of the current tenant. Optional connector_id filter (must be tenant's connector)."""
+    q = db.query(Action).filter(Action.tenant_id == current_user.tenant_id)
+    if connector_id is not None:
+        c = _get_connector_by_id(db, str(connector_id), current_user.tenant_id)
+        if not c:
+            raise HTTPException(status_code=404, detail="Connector not found")
+        c_hex, c_canonical = connector_id.hex, str(connector_id)
+        q = q.filter(or_(Action.connector_id == c_hex, Action.connector_id == c_canonical))
+    actions = q.all()
+    return [_action_to_response(a, db=db) for a in actions]
+
+
+@router.get("/actions/{action_id}")
+def get_action(
+    action_id: str,
+    current_user: CurrentUser = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Get action by id; 404 if not in current tenant. Response includes tag_ids."""
+    a = _get_action_by_id(db, action_id, current_user.tenant_id)
+    if not a:
+        raise HTTPException(status_code=404, detail="Action not found")
+    return _action_to_response(a, db=db)
+
+
+@router.post("/actions", status_code=201)
+def create_action(
+    body: ActionCreateBody,
+    current_user: CurrentUser = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Create action in current tenant. connector_id must exist and be tenant's; tag_ids must exist and be tenant's."""
+    c = _get_connector_by_id(db, str(body.connector_id), current_user.tenant_id)
+    if not c:
+        raise HTTPException(status_code=404, detail="Connector not found")
+    if body.tag_ids:
+        _validate_tag_ids_in_tenant(db, body.tag_ids, current_user.tenant_id)
+    action = Action(
+        tenant_id=current_user.tenant_id,
+        connector_id=c.id,
+        method=body.method,
+        path=body.path,
+        name=body.name,
+        request_config=body.request_config,
+    )
+    db.add(action)
+    db.commit()
+    db.refresh(action)
+    for tag_id in body.tag_ids:
+        db.add(ActionTag(action_id=action.id, tag_id=tag_id.hex))
+    if body.tag_ids:
+        db.commit()
+    return _action_to_response(
+        action,
+        tag_ids=[str(t) for t in body.tag_ids],
+        db=db,
+    )
+
+
+@router.patch("/actions/{action_id}")
+def update_action(
+    action_id: str,
+    body: ActionUpdateBody,
+    current_user: CurrentUser = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Update action; connector and tags must be tenant's. tag_ids replace existing."""
+    a = _get_action_by_id(db, action_id, current_user.tenant_id)
+    if not a:
+        raise HTTPException(status_code=404, detail="Action not found")
+    if body.method is not None:
+        a.method = body.method
+    if body.path is not None:
+        a.path = body.path
+    if body.name is not None:
+        a.name = body.name
+    if body.request_config is not None:
+        a.request_config = body.request_config
+    if body.tag_ids is not None:
+        _validate_tag_ids_in_tenant(db, body.tag_ids, current_user.tenant_id)
+        db.query(ActionTag).filter(ActionTag.action_id == a.id).delete()
+        for tag_id in body.tag_ids:
+            db.add(ActionTag(action_id=a.id, tag_id=tag_id.hex))
+    db.commit()
+    db.refresh(a)
+    return _action_to_response(a, db=db)
+
+
+@router.delete("/actions/{action_id}", status_code=204)
+def delete_action(
+    action_id: str,
+    current_user: CurrentUser = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Delete action; 404 if not in current tenant."""
+    a = _get_action_by_id(db, action_id, current_user.tenant_id)
+    if not a:
+        raise HTTPException(status_code=404, detail="Action not found")
+    db.query(ActionTag).filter(ActionTag.action_id == a.id).delete()
+    db.delete(a)
     db.commit()
     return None

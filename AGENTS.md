@@ -1,22 +1,26 @@
 # Guía de roles y skills (Cursor)
 
-El **agente principal actúa como orquestador**: coordina subagentes, mantiene estado en Engram y no ejecuta tests ni git a mano. Flujo documentado en `docs/architecture/orchestrator-flow.md`.
+El **agente principal actúa como orquestador**: coordina subagentes, mantiene estado en Engram y no ejecuta tests ni git a mano. **Engram es la piedra angular**: solo el orquestador escribe en Engram; los subagentes reciben instrucciones y referencias (observation_id, topic_key) para leer lo necesario. Flujo en `docs/architecture/orchestrator-flow.md`; protocolo Engram-agentes en `docs/architecture/engram-agent-protocol.md`.
 
 ## Rol orquestador
 
 - Recibe tareas (p. ej. "siguiente tarea", task ID) → Engram `tasks/<id>`, contexto, skills.
-- Delega: **ai-worker** (implementación), **test-runner** (tests), **debugger** (si fallan tests), **git-pr** (commit, push, PR).
-- Si los tests fallan: pasa el reporte al debugger → tras el fix relanza test-runner; repite hasta éxito.
-- Engram: el orquestador tiene acceso; puede pasar contexto a subagentes en el prompt; si un subagente tiene MCP Engram, puede consultar por su cuenta.
+- **Único escritor en Engram**: escribe/actualiza memorias antes de delegar (contexto de tarea, brief de fallo, decisiones) y pasa **referencias** (id o topic_key) al invocar subagentes, no volcados enormes en el prompt.
+- **Arquitectura y patrones**: el orquestador documenta decisiones de arquitectura, patrones y estructura de carpetas (en Engram y/o docs/). Puede invocar opcionalmente un subagente **architecture-reviewer** para misiones concretas de análisis (revisar estructura, proponer mejoras); el subagente solo reporta y el orquestador escribe en Engram y delega implementación si aplica.
+- Delega: **ai-worker** (implementación), **test-runner** (tests), **debugger** (si fallan tests), **git-pr** (commit, push, PR). Contrasta lo que devuelven con la documentación y con Engram.
+- Si los tests fallan: escribe en Engram el brief del fallo, invoca **debugger** con la referencia a esa observación → tras el fix relanza test-runner; repite hasta éxito.
 
 ## Subagentes (usar en lugar de comandos a mano)
+
+Todos los subagentes son **solo lectura** en Engram (mem_search, mem_get_observation). El orquestador les pasa **referencias** (observation_id o topic_key) para que consulten el contexto necesario; no escriben memorias.
 
 | Subagente | Definición | Uso |
 |-----------|------------|-----|
 | **test-runner** | `.cursor/agents/test-runner.md` | Ejecutar tests; no invocar `pytest` en terminal. Si fallan, reportar para que el orquestador invoque al debugger. |
-| **git-pr** | `.cursor/agents/git-pr.md` | Ramas por tarea (`task/<id>`), Conventional Commits, push, apertura/actualización de PRs. |
-| **debugger** | `.cursor/agents/debugger.md` | Cuando un test falla: recibir contexto del orquestador, diagnosticar, aplicar fix, reportar. No lanza tests. |
-| **ai-worker** | `.cursor/agents/ai-worker.md` | Implementar lo que asigne el orquestador (código, tests iniciales, refactors). |
+| **git-pr** | `.cursor/agents/git-pr.md` | Ramas por tarea (`task/<id>`), Conventional Commits, push, apertura/actualización de PRs. Puede recibir ref. a `tasks/<id>` para título/descripción del PR. |
+| **debugger** | `.cursor/agents/debugger.md` | Cuando un test falla: el orquestador escribe el brief en Engram y pasa la referencia; el debugger consulta por id/key, diagnostica, aplica fix y reporta. No lanza tests. |
+| **ai-worker** | `.cursor/agents/ai-worker.md` | Implementar lo que asigne el orquestador; consultar en Engram las observaciones/topic_keys que el orquestador indique (tarea, criterios, docs). |
+| **architecture-reviewer** (opcional) | `.cursor/agents/architecture-reviewer.md` | Misiones concretas de análisis: revisar estructura de carpetas, patrones, consistencia con docs; reportar al orquestador (no escribe en Engram). |
 
 Si el sistema permite invocar por nombre, usar el subagente; si solo hay shell, seguir el workflow descrito en el .md del subagente.
 
