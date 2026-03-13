@@ -2,6 +2,8 @@
 
 El **agente principal** en Cursor actúa como **orquestador**: no ejecuta tests ni git directamente; delega en subagentes y coordina el flujo hasta el éxito.
 
+**Flujo Git por tarea (rama → trabajo → tests → debug si hace falta → commits legibles → push → PR):** ver `git-workflow.md` en esta misma carpeta. Los agentes pueden consultar ese documento para el ciclo completo hasta la PR.
+
 (Shell por defecto: ver regla **project-context** — Git Bash / sintaxis bash.)
 
 ## Subagentes disponibles

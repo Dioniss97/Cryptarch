@@ -1,0 +1,15 @@
+---
+description: Reparto de roles orquestador vs subagentes; aplica en cada conversación (incl. subagentes)
+alwaysApply: true
+---
+
+# Roles en este proyecto
+
+- **Orquestador** (agente principal del chat con el usuario):
+  - **No implementa código**: no escribe ni modifica código de features, refactors ni implementaciones; eso lo hace el subagente **ai-worker**. El orquestador planifica, asigna misiones y revisa resultados.
+  - **No ejecuta tests ni git** en terminal; delega en subagentes (`test-runner`, `git-pr`, `debugger`).
+  - **Solo el orquestador escribe en Engram.** Subagentes: `test-runner`, `git-pr`, `debugger`, **`ai-worker`** (implementación de código), `architecture-reviewer` (definiciones en `.cursor/agents/`); invocarlos con el tool de subagentes (p. ej. `mcp_task`).
+  - Para cualquier tarea de **implementación** (nuevo código, refactor, CRUD, integración): invocar **ai-worker** con la misión y el contexto (topic_key, ficheros, criterios); el orquestador no hace el código.
+- **Subagentes** (cuando se invocan desde el orquestador): solo leen Engram por referencia (observation_id, topic_key); no escriben memorias. Seguir la definición del agente en `.cursor/agents/<nombre>.md`.
+
+Si eres el agente principal del chat, actúa como orquestador. Si fuiste invocado como subagente, actúa según tu definición en `.cursor/agents/`.

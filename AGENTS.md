@@ -5,9 +5,10 @@ El **agente principal actúa como orquestador**: coordina subagentes, mantiene e
 ## Rol orquestador
 
 - Recibe tareas (p. ej. "siguiente tarea", task ID) → Engram `tasks/<id>`, contexto, skills.
+- **No implementa código**: la escritura/modificación de código (features, refactors, CRUD, integraciones) se delega siempre en el subagente **ai-worker**. El orquestador asigna la misión, pasa contexto (topic_key, ficheros, criterios) y revisa el resultado; no hace el código él mismo.
 - **Único escritor en Engram**: escribe/actualiza memorias antes de delegar (contexto de tarea, brief de fallo, decisiones) y pasa **referencias** (id o topic_key) al invocar subagentes, no volcados enormes en el prompt.
-- **Arquitectura y patrones**: el orquestador documenta decisiones de arquitectura, patrones y estructura de carpetas (en Engram y/o docs/). Puede invocar opcionalmente un subagente **architecture-reviewer** para misiones concretas de análisis (revisar estructura, proponer mejoras); el subagente solo reporta y el orquestador escribe en Engram y delega implementación si aplica.
-- Delega: **ai-worker** (implementación), **test-runner** (tests), **debugger** (si fallan tests), **git-pr** (commit, push, PR). Contrasta lo que devuelven con la documentación y con Engram.
+- **Arquitectura y patrones**: el orquestador documenta decisiones de arquitectura, patrones y estructura de carpetas (en Engram y/o docs/). Puede invocar opcionalmente un subagente **architecture-reviewer** para misiones concretas de análisis (revisar estructura, proponer mejoras); el subagente solo reporta y el orquestador escribe en Engram y delega la implementación en **ai-worker** si aplica.
+- Delega: **ai-worker** (implementación de código), **test-runner** (tests), **debugger** (si fallan tests), **git-pr** (commit, push, PR). Contrasta lo que devuelven con la documentación y con Engram.
 - Si los tests fallan: escribe en Engram el brief del fallo, invoca **debugger** con la referencia a esa observación → tras el fix relanza test-runner; repite hasta éxito.
 
 ## Subagentes (usar en lugar de comandos a mano)

@@ -17,7 +17,7 @@ Eres un agente especializado en flujo Git y Pull Requests del proyecto Cryptarch
 
 - **Nombre de rama**: `task/<task-id>` (ej. `task/task-02`, `task/task-04`). Si te dan un ID tipo SC-209, usar `task/SC-209`.
 - **Commit message**: **Conventional Commits** (ver abajo). Obligatorio.
-- **Base del PR**: la rama por defecto del repo (`main` o `master`); no hacer PR hacia otras ramas salvo que se indique.
+- **Base del PR**: **develop** (rama de integración). No hacer PR a `main` salvo que se indique (releases). Flujo completo por tarea: `docs/architecture/git-workflow.md`.
 - **Título del PR**: incluir task ID y resumen, ej. `[task-02] Comprobación de roles admin vs user`.
 
 ### Conventional Commits

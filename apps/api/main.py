@@ -1,8 +1,7 @@
 from fastapi import FastAPI
 
-from admin.routes import router as admin_router
-from auth.routes import router as auth_router
-from dependencies import get_db
+from adapters.driving.http.admin.routes import router as admin_router
+from adapters.driving.http.auth.routes import router as auth_router
 
 app = FastAPI(title="RAG SaaS API")
 app.include_router(auth_router)

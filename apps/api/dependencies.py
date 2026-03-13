@@ -1,25 +1,12 @@
 """FastAPI dependencies: get_db, auth, etc."""
-from typing import Annotated, Generator
+from typing import Annotated
 
 from fastapi import Depends, Header, HTTPException, status
 from jose import JWTError, jwt
 from pydantic import BaseModel
-from sqlalchemy.orm import Session
 
-from config import DATABASE_URL, JWT_ALGORITHM, JWT_SECRET
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-
-engine = create_engine(DATABASE_URL, pool_pre_ping=True)
-SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
-
-
-def get_db() -> Generator[Session, None, None]:
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+from adapters.driven.persistence.db import get_db
+from config import JWT_ALGORITHM, JWT_SECRET
 
 
 class CurrentUser(BaseModel):
