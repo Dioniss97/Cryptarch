@@ -11,6 +11,8 @@ class ActionCreateBody(BaseModel):
     path: str
     name: str | None = None
     request_config: dict[str, Any] | None = None
+    input_schema_json: dict[str, Any] | None = None
+    input_schema_version: int | None = 1
     tag_ids: list[uuid.UUID] = []
 
 
@@ -19,6 +21,8 @@ class ActionUpdateBody(BaseModel):
     path: str | None = None
     name: str | None = None
     request_config: dict[str, Any] | None = None
+    input_schema_json: dict[str, Any] | None = None
+    input_schema_version: int | None = None
     tag_ids: list[uuid.UUID] | None = None
 
 
@@ -37,6 +41,8 @@ def action_to_response(
         "path": action.path,
         "name": action.name,
         "request_config": action.request_config,
+        "input_schema_json": action.input_schema_json,
+        "input_schema_version": action.input_schema_version,
         "tag_ids": tag_ids,
     }
 
@@ -61,3 +67,5 @@ class ActionLike(Protocol):
     path: str
     name: str | None
     request_config: dict[str, Any] | None
+    input_schema_json: dict[str, Any] | None
+    input_schema_version: int | None

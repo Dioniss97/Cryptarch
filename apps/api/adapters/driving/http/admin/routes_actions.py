@@ -92,6 +92,8 @@ def create_action(
             body.path,
             body.name,
             body.request_config,
+            body.input_schema_json,
+            body.input_schema_version,
             tag_ids_str,
             repo,
             connector_repo,
@@ -110,6 +112,12 @@ def create_action(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Tag not found",
         )
+    except ValueError as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
+        ) from exc
     return action_to_response(action, tag_ids=tag_ids_str)
 
 
@@ -132,6 +140,8 @@ def update_action(
             body.path,
             body.name,
             body.request_config,
+            body.input_schema_json,
+            body.input_schema_version,
             tag_ids_str,
             repo,
             tag_repo,
@@ -149,6 +159,12 @@ def update_action(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Tag not found",
         )
+    except ValueError as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
+        ) from exc
     tag_ids = repo.get_action_tag_ids(action.id)
     return action_to_response(action, tag_ids=tag_ids)
 

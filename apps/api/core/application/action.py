@@ -3,6 +3,7 @@ Action use cases. Orchestrate ActionRepository, ConnectorRepository, TagReposito
 Validate connector_id and tag_ids in tenant. No Session or DB in this module; ports are injected.
 """
 from core.domain.models import Action
+from core.domain.input_schema import validate_input_schema_v1
 from core.ports.action_repository import ActionRepository
 from core.ports.connector_repository import ConnectorRepository
 from core.ports.tag_repository import TagRepository
@@ -57,6 +58,8 @@ def create_action(
     path: str,
     name: str | None,
     request_config: dict | None,
+    input_schema_json: dict | None,
+    input_schema_version: int | None,
     tag_ids: list[str],
     repo: ActionRepository,
     connector_repo: ConnectorRepository,
@@ -66,6 +69,9 @@ def create_action(
     connector = connector_repo.get_by_id(connector_id, tenant_id)
     if not connector:
         raise ConnectorNotFoundError("Connector not found")
+    if input_schema_version not in (None, 1):
+        raise ValueError("Only input_schema_version=1 is supported")
+    validate_input_schema_v1(input_schema_json)
     _validate_tag_ids_in_tenant(tag_ids, tenant_id, tag_repo)
     action = Action(
         tenant_id=tenant_id,
@@ -74,6 +80,8 @@ def create_action(
         path=path,
         name=name,
         request_config=request_config,
+        input_schema_json=input_schema_json,
+        input_schema_version=input_schema_version or 1,
     )
     return repo.add(action, tag_ids)
 
@@ -85,6 +93,8 @@ def update_action(
     path: str | None,
     name: str | None,
     request_config: dict | None,
+    input_schema_json: dict | None,
+    input_schema_version: int | None,
     tag_ids: list[str] | None,
     repo: ActionRepository,
     tag_repo: TagRepository,
@@ -95,6 +105,10 @@ def update_action(
         raise ActionNotFoundError("Action not found")
     if tag_ids is not None:
         _validate_tag_ids_in_tenant(tag_ids, tenant_id, tag_repo)
+    if input_schema_version not in (None, 1):
+        raise ValueError("Only input_schema_version=1 is supported")
+    if input_schema_json is not None:
+        validate_input_schema_v1(input_schema_json)
     if method is not None:
         action.method = method
     if path is not None:
@@ -103,6 +117,10 @@ def update_action(
         action.name = name
     if request_config is not None:
         action.request_config = request_config
+    if input_schema_json is not None:
+        action.input_schema_json = input_schema_json
+    if input_schema_version is not None:
+        action.input_schema_version = input_schema_version
     return repo.save(action, tag_ids)
 
 
