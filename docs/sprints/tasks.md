@@ -27,6 +27,26 @@ Criterios de aceptación: no-admin bloqueado en rutas admin; cross-tenant bloque
 
 ---
 
+## Sprint 02.5 — Backend puente para frontend dinámico (7 tareas)
+
+Doc: `sprint-02-5-backend-bridge.md` (crear/actualizar en Engram). Tasks sugeridas: task-08a … task-08g.
+
+Objetivo: desbloquear el frontend admin/chat con contratos backend estables para formularios dinámicos por acción, preferencias de usuario e inicio de ejecución segura de actions desde backend.
+
+| # | Task ID (ej.) | Descripción | Alcance |
+|---|----------------|-------------|---------|
+| 1 | task-08a | Modelo Integration + IntegrationAction (sin romper Connector/Action actual) | Ajuste de modelo y repositorio, tenant-scoped |
+| 2 | task-08b | Input schema V1 por acción (versionado) | `input_schema_json` versionado por action |
+| 3 | task-08c | Validación de schema V1 | Tipos soportados, required, options, i18n map |
+| 4 | task-08d | Validación payload server-side | Regex válida + validación payload en backend |
+| 5 | task-08e | Preferencias de usuario | Persistencia `language`/`theme`/`table_density` |
+| 6 | task-08f | Endpoints contrato frontend | `GET/PATCH` preferencias, `GET` schema action |
+| 7 | task-08g | Ejecución backend de action (stub/mock) | `POST /actions/{action_id}/execute`, síncrono, sin colas |
+
+Criterios de aceptación: frontend puede renderizar formularios dinámicos por schema; backend valida y ejecuta en modo stub/mock; preferencias de usuario persistidas; sin regresión en guards/tenant/permisos.
+
+---
+
 ## Sprint 03 — Admin Web (5 tareas)
 
 Doc: `sprint-03-admin-web.md`. Tasks: task-09 … task-13.
@@ -34,19 +54,40 @@ Doc: `sprint-03-admin-web.md`. Tasks: task-09 … task-13.
 | # | Task ID (ej.) | Descripción | Alcance |
 |---|----------------|-------------|---------|
 | 1 | task-09 | Layout y menú admin | Rutas admin, navegación |
-| 2 | task-10 | CRUD páginas: users, tags, filters, groups | Tablas, formularios, listados |
+| 2 | task-10 | CRUD páginas: users, tags, filters, groups, connectors, actions, documents | Tablas, formularios, listados (API Sprint 02 + 02.5) |
 | 3 | task-11 | Tag picker y filter builder (AND de tags) | Componentes reutilizables, semántica AND |
 | 4 | task-12 | Editor de bindings de grupo + formularios connector/action | Group bindings, forms conectores y acciones |
 | 5 | task-13 | Badges de estado y manejo de errores en UI | Estados visibles, mensajes de error |
 
-Criterios de aceptación: admin gestiona entidades desde UI; filter builder refleja semántica AND; errores visibles.
+Criterios de aceptación: admin gestiona entidades desde UI; filter builder refleja semántica AND; errores visibles; formularios de actions pueden apoyarse en el schema dinámico de Sprint 02.5.
 
 ---
 
-## Siguientes sprints (referencia)
+## Sprint 04 — Ingestión y vectorización (preliminar)
 
-- **Sprint 04 — Ingestión y vectorización**: upload, cola Redis, worker, extracción/chunking/embeddings, Qdrant, estados.
-- **Sprint 05 — Chat, RAG y acciones**: chat usuario, RAG con scope de permisos, ejecución de acciones permitidas.
-- **Sprint 06 — Hardening**: redacción, auditoría, métricas, revisión de rendimiento.
+Doc: `sprint-04-ingestion-vectorization.md`. Tasks: task-14 … task-18 (desglose en Engram).
 
-Las tasks concretas se desglosan (con prioridad) cuando se abra cada sprint; usar siempre `tasks/<id>` en Engram.
+| # | Task ID (ej.) | Descripción | Alcance |
+|---|----------------|-------------|---------|
+| 1 | task-14 | Upload endpoint (single file) | API POST /admin/documents/upload |
+| 2 | task-15 | Redis enqueue | Cola de jobs |
+| 3 | task-16 | Worker + extraction | PDF/TXT/CSV (no OCR) |
+| 4 | task-17 | Chunking + embeddings + Qdrant | Pipeline de indexación |
+| 5 | task-18 | Status transitions | queued → processing → indexed \| error |
+
+## Sprint 05 — Chat, RAG y acciones (preliminar)
+
+Doc: `sprint-05-chat-rag-actions.md`. Tasks: task-19 … task-22 (desglose en Engram).
+
+| # | Task ID (ej.) | Descripción | Alcance |
+|---|----------------|-------------|---------|
+| 1 | task-19 | Chat page + API | UI y endpoint |
+| 2 | task-20 | Resolución permisos efectivos | En request time |
+| 3 | task-21 | RAG scope | Docs permitidos |
+| 4 | task-22 | Action execution real | Evolucionar de stub/mock (Sprint 02.5) a ejecución real contra integraciones permitidas |
+
+## Sprint 06 — Hardening (referencia)
+
+Redacción, auditoría, métricas, revisión de rendimiento. Tasks se desglosan al abrir.
+
+Las tasks concretas viven en Engram (`tasks/<id>`); este doc es semilla para bootstrap.

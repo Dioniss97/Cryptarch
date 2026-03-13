@@ -53,6 +53,11 @@ class Connector:
 
 
 @dataclass
+class Integration(Connector):
+    """Transitional semantic alias for Connector."""
+
+
+@dataclass
 class Action:
     tenant_id: str
     connector_id: str
@@ -61,6 +66,19 @@ class Action:
     name: Optional[str] = None
     request_config: Optional[dict[str, Any]] = None
     id: str | None = None
+
+
+@dataclass
+class IntegrationAction(Action):
+    """Transitional semantic alias for Action with integration terminology."""
+
+    @property
+    def integration_id(self) -> str:
+        return self.connector_id
+
+    @integration_id.setter
+    def integration_id(self, value: str) -> None:
+        self.connector_id = value
 
 
 @dataclass

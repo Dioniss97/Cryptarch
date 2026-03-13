@@ -1,4 +1,7 @@
-"""Port for Action persistence."""
+"""Port for Action persistence.
+
+IntegrationAction is a transitional semantic alias over Action.
+"""
 from typing import Protocol
 
 from core.domain.models import Action
@@ -24,3 +27,9 @@ class ActionRepository(Protocol):
 
     def delete(self, action: Action) -> None:
         ...
+
+
+# Transitional semantic alias for Sprint 02.5 task-08a.
+# Keeps existing implementations untouched while enabling
+# integration-action-centric naming in newer use cases.
+IntegrationActionRepository = ActionRepository

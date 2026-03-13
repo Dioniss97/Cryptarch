@@ -27,7 +27,7 @@ Para cada tarea (task ID conocido):
    Orquestador invoca **debugger** con el reporte del fallo; el debugger corrige y reporta. Orquestador vuelve a invocar **test-runner**. Repetir hasta que todos los tests pasen.
 
 5. **Commits legibles**  
-   Hacer commit(s) con mensajes claros y acotados al scope de la tarea. Usar **Conventional Commits**: `type(scope): descripción en imperativo` (ej. `feat(api): add admin guard and GET /admin/me`). Preferir un commit por cambio lógico; evitar megacommits.
+   Hacer commit(s) con mensajes claros y acotados al scope de la tarea. Usar **Conventional Commits** con prefijo obligatorio de sprint/tarea: `SprintXX/taskXX type(scope): descripción en imperativo` (ej. `Sprint02.5/task08a feat(api): add integration transition aliases`). Preferir un commit por cambio lógico; evitar megacommits.
 
 6. **Push**  
    Subir la rama al remoto (`git push -u origin task/<id>`). No hacer force push salvo indicación explícita.
@@ -50,4 +50,14 @@ Por cada tarea: **rama desde develop → trabajar → testear → [debug → tes
 
 ## Convenciones de commits (resumen)
 
-Tipos: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `style`, `perf`, `ci`. Scope opcional pero recomendado (`api`, `web`, `worker`, `docs`). Descripción en imperativo, sin punto final. Detalle completo en `.cursor/agents/git-pr.md`.
+Formato obligatorio:
+- `SprintXX/taskXX type(scope): descripción`
+- Ejemplo: `Sprint02.5/task08b feat(api): add versioned input schema field`
+
+Reglas:
+- `SprintXX/taskXX` siempre al inicio del subject del commit.
+- `type` debe ser uno de: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `style`, `perf`, `ci`.
+- `scope` opcional pero recomendado (`api`, `web`, `worker`, `docs`).
+- Tras `type(scope)` debe ir `:` y una descripción breve en imperativo, sin punto final.
+
+Detalle completo en `.cursor/agents/git-pr.md`.

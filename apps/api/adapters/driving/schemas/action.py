@@ -27,10 +27,12 @@ def action_to_response(
     tag_ids: list[str],
 ) -> dict:
     """Serialize Action to response dict. tag_ids must be canonical UUID strings."""
+    connector_id = _canonical_str(action.connector_id)
     return {
         "id": _canonical_str(action.id),
         "tenant_id": _canonical_str(action.tenant_id),
-        "connector_id": _canonical_str(action.connector_id),
+        "connector_id": connector_id,
+        "integration_id": connector_id,
         "method": action.method,
         "path": action.path,
         "name": action.name,

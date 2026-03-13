@@ -27,6 +27,8 @@ from adapters.driven.persistence.models import (  # type: ignore[F401]
 Action = ActionOrm
 ActionTag = ActionTagOrm
 Connector = ConnectorOrm
+Integration = ConnectorOrm
+IntegrationAction = ActionOrm
 Document = DocumentOrm
 DocumentTag = DocumentTagOrm
 Group = GroupOrm
@@ -45,6 +47,8 @@ __all__ = [
     "ActionTag",
     "Base",
     "Connector",
+    "Integration",
+    "IntegrationAction",
     "Document",
     "DocumentTag",
     "Group",
