@@ -578,3 +578,58 @@ def test_delete_action_other_tenant_404(
         headers=_auth_headers(tenant.id, admin_user.id),
     )
     assert r.status_code == 404
+
+
+def test_create_action_with_valid_input_schema_201(
+    client: TestClient, tenant, admin_user, connector
+):
+    r = client.post(
+        "/admin/actions",
+        headers=_auth_headers(tenant.id, admin_user.id),
+        json={
+            "connector_id": str(uuid.UUID(connector.id)),
+            "method": "POST",
+            "path": "/run",
+            "input_schema_version": 1,
+            "input_schema_json": {
+                "fields": [
+                    {
+                        "type": "text",
+                        "name": "query",
+                        "label": {"es": "Consulta", "en": "Query"},
+                        "required": True,
+                    }
+                ]
+            },
+        },
+    )
+    assert r.status_code == 201
+    body = r.json()
+    assert body["input_schema_version"] == 1
+    assert body["input_schema_json"]["fields"][0]["name"] == "query"
+
+
+def test_create_action_with_invalid_input_schema_422(
+    client: TestClient, tenant, admin_user, connector
+):
+    r = client.post(
+        "/admin/actions",
+        headers=_auth_headers(tenant.id, admin_user.id),
+        json={
+            "connector_id": str(uuid.UUID(connector.id)),
+            "method": "POST",
+            "path": "/run",
+            "input_schema_version": 1,
+            "input_schema_json": {
+                "fields": [
+                    {
+                        "type": "text",
+                        "name": "query",
+                        "label": "Consulta",
+                        # missing required
+                    }
+                ]
+            },
+        },
+    )
+    assert r.status_code == 422
