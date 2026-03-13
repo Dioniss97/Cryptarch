@@ -20,6 +20,7 @@ from adapters.driven.persistence.models import (  # type: ignore[F401]
     TagOrm,
     TenantOrm,
     UserOrm,
+    UserPreferenceOrm,
     UserTagOrm,
 )
 
@@ -40,6 +41,7 @@ SavedFilterTag = SavedFilterTagOrm
 Tag = TagOrm
 Tenant = TenantOrm
 User = UserOrm
+UserPreference = UserPreferenceOrm
 UserTag = UserTagOrm
 
 __all__ = [
@@ -60,5 +62,6 @@ __all__ = [
     "Tag",
     "Tenant",
     "User",
+    "UserPreference",
     "UserTag",
 ]

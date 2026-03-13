@@ -65,6 +65,8 @@ class Action:
     path: str
     name: Optional[str] = None
     request_config: Optional[dict[str, Any]] = None
+    input_schema_json: Optional[dict[str, Any]] = None
+    input_schema_version: Optional[int] = 1
     id: str | None = None
 
 
@@ -86,5 +88,16 @@ class Document:
     tenant_id: str
     status: str  # queued | processing | indexed | error
     file_path: Optional[str] = None
+    id: str | None = None
+
+
+@dataclass
+class UserPreference:
+    tenant_id: str
+    user_id: str
+    language: str = "es"
+    theme: str = "system"  # system | light | dark
+    table_density: str = "comfortable"  # comfortable | compact
+    metadata: Optional[dict[str, Any]] = None
     id: str | None = None
 

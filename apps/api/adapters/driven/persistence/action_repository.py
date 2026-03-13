@@ -21,6 +21,8 @@ def _orm_to_domain(orm: ActionOrm) -> Action:
         path=orm.path,
         name=orm.name,
         request_config=orm.request_config,
+        input_schema_json=orm.input_schema_json,
+        input_schema_version=orm.input_schema_version,
     )
 
 
@@ -93,6 +95,8 @@ class ActionRepositoryImpl(ActionRepository):
             path=action.path,
             name=action.name,
             request_config=action.request_config,
+            input_schema_json=action.input_schema_json,
+            input_schema_version=action.input_schema_version,
         )
         self._session.add(orm)
         self._session.flush()
@@ -136,6 +140,8 @@ class ActionRepositoryImpl(ActionRepository):
             orm.path = action.path
         orm.name = action.name
         orm.request_config = action.request_config
+        orm.input_schema_json = action.input_schema_json
+        orm.input_schema_version = action.input_schema_version
         self._session.flush()
         self._session.refresh(orm)
         return _orm_to_domain(orm)

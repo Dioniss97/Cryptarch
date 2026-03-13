@@ -5,7 +5,7 @@ These are the concrete database models. Domain entities live in
 """
 import uuid
 
-from sqlalchemy import Column, ForeignKey, String, UniqueConstraint
+from sqlalchemy import Column, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import declarative_base
 
@@ -118,6 +118,8 @@ class ActionOrm(Base):
     path = Column(String(2048), nullable=False)
     request_config = Column(JSONB, nullable=True)
     name = Column(String(255), nullable=True)
+    input_schema_json = Column(JSONB, nullable=True)
+    input_schema_version = Column(Integer, nullable=True, default=1)
 
 
 class ActionTagOrm(Base):
@@ -140,6 +142,22 @@ class DocumentTagOrm(Base):
     __tablename__ = "document_tags"
     document_id = Column(UUID(as_uuid=False), ForeignKey("documents.id"), primary_key=True)
     tag_id = Column(UUID(as_uuid=False), ForeignKey("tags.id"), primary_key=True)
+
+
+class UserPreferenceOrm(Base):
+    __tablename__ = "user_preferences"
+    id = Column(UUID(as_uuid=False), primary_key=True, default=lambda: uuid.uuid4().hex)
+    tenant_id = Column(
+        UUID(as_uuid=False), ForeignKey("tenants.id"), nullable=False, index=True
+    )
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    language = Column(String(32), nullable=False, default="es")
+    theme = Column(String(32), nullable=False, default="system")
+    table_density = Column(String(32), nullable=False, default="comfortable")
+    metadata_json = Column("metadata", JSONB, nullable=True)
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "user_id", name="uq_user_preferences_tenant_user"),
+    )
 
 
 # Transitional semantic aliases for Sprint 02.5 task-08a.
