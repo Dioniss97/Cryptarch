@@ -155,3 +155,7 @@ class ActionRepositoryImpl(ActionRepository):
                 ActionTagOrm.action_id == orm.id
             ).delete()
             self._session.delete(orm)
+
+
+# Transitional semantic alias for Sprint 02.5 task-08a.
+IntegrationActionRepositoryImpl = ActionRepositoryImpl

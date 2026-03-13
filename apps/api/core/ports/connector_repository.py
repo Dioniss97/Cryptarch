@@ -1,4 +1,7 @@
-"""Port for Connector persistence."""
+"""Port for Connector persistence.
+
+Integration is a transitional semantic alias over Connector.
+"""
 from typing import Any, Protocol
 
 from core.domain.models import Connector
@@ -22,3 +25,9 @@ class ConnectorRepository(Protocol):
 
     def has_actions(self, connector_id: str) -> bool:
         ...
+
+
+# Transitional semantic alias for Sprint 02.5 task-08a.
+# Keeps existing implementations untouched while enabling
+# integration-centric naming in newer use cases.
+IntegrationRepository = ConnectorRepository

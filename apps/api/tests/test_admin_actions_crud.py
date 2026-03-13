@@ -263,6 +263,7 @@ def test_get_action_same_tenant_200(
     assert data["path"] == "/items"
     assert data["name"] == "List items"
     assert data["request_config"] == {"timeout": 30}
+    assert _uuid_eq(data["integration_id"], data["connector_id"])
     assert "tag_ids" in data
     assert data["tag_ids"] == []
 
@@ -352,6 +353,7 @@ def test_create_action_201(client: TestClient, tenant, admin_user, connector):
     assert data["path"] == "/items"
     assert data["name"] == "Create item"
     assert _uuid_eq(data["connector_id"], connector.id)
+    assert _uuid_eq(data["integration_id"], connector.id)
     assert _uuid_eq(data["tenant_id"], tenant.id)
     assert data["tag_ids"] == []
     assert "id" in data

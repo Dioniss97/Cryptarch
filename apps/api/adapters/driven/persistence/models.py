@@ -141,3 +141,10 @@ class DocumentTagOrm(Base):
     document_id = Column(UUID(as_uuid=False), ForeignKey("documents.id"), primary_key=True)
     tag_id = Column(UUID(as_uuid=False), ForeignKey("tags.id"), primary_key=True)
 
+
+# Transitional semantic aliases for Sprint 02.5 task-08a.
+# They intentionally point to the existing tables/models to keep
+# backward compatibility while introducing clearer domain naming.
+IntegrationOrm = ConnectorOrm
+IntegrationActionOrm = ActionOrm
+

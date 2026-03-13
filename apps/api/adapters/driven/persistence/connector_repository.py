@@ -110,3 +110,7 @@ class SqlAlchemyConnectorRepository(ConnectorRepository):
             .first()
             is not None
         )
+
+
+# Transitional semantic alias for Sprint 02.5 task-08a.
+SqlAlchemyIntegrationRepository = SqlAlchemyConnectorRepository
