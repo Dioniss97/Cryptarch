@@ -1,5 +1,8 @@
 # Flujo del orquestador y subagentes
 
+> Si vienes desde `AGENTS.md`, aqui veras el flujo operativo completo.
+> Si necesitas convenciones de git/PR, continua en `git-workflow.md`.
+
 El **agente principal** en Cursor actúa como **orquestador**: no ejecuta tests ni git directamente; delega en subagentes y coordina el flujo hasta el éxito.
 
 **Flujo Git por tarea (rama → trabajo → tests → debug si hace falta → commits legibles → push → PR):** ver `git-workflow.md` en esta misma carpeta. Los agentes pueden consultar ese documento para el ciclo completo hasta la PR.
@@ -11,7 +14,7 @@ El **agente principal** en Cursor actúa como **orquestador**: no ejecuta tests 
 | Subagente | Definición | Responsabilidad |
 |-----------|------------|-----------------|
 | **test-runner** | `.cursor/agents/test-runner.md` | Ejecutar la suite de tests (pytest, etc.) y reportar resultado (pass/fail, resumen de fallos). |
-| **git-pr** | `.cursor/agents/git-pr.md` | Ramas por tarea (`task/<id>`), commits (Conventional Commits), push y apertura/actualización de PRs. |
+| **git-pr** | `.cursor/agents/git-pr.md` | Ramas por sprint (`SprintX` o `SprintX-Y`), commits (Conventional Commits), push y apertura/actualización de PRs. |
 | **debugger** | `.cursor/agents/debugger.md` | Cuando un test falla: recibir contexto del orquestador, diagnosticar, aplicar fix y reportar. No lanza tests. |
 | **ai-worker** | `.cursor/agents/ai-worker.md` | Ejecutar la tarea de implementación que asigne el orquestador (código, tests iniciales, refactors). |
 
@@ -46,3 +49,10 @@ Regla práctica: el orquestador siempre puede pasar contexto desde Engram al inv
 - **git-pr**: git (rama, commit, push, PR) siguiendo Conventional Commits.
 - **debugger**: diagnostica y corrige cuando los tests fallan.
 - **ai-worker**: implementa lo que pida el orquestador (feature, tests iniciales, refactor).
+
+## Enlace con el resto de documentos
+
+- Vision general y arranque local: `../../README.md`.
+- Roles y skills por tipo de trabajo: `../../AGENTS.md`.
+- Reglas de ramas, commits y PR: `git-workflow.md`.
+- Prioridad y alcance de tareas: `../sprints/tasks.md`.

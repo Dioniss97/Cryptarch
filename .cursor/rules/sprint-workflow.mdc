@@ -17,7 +17,7 @@ Cuando pidan **empezar una tarea** o mencionen un task ID (ej. "task SC-209", "t
 4. Recuperar contexto útil desde Engram: `sprints/*`, `tasks/*`, `docs/*`, `knowledge/*` (mem_search, luego mem_get_observation si hace falta).
 5. Dar un resumen técnico breve antes de empezar.
 6. Durante el trabajo: guardar descubrimientos reutilizables en `knowledge/<topic>`.
-7. Al terminar: tests pasando, commit, abrir PR; luego actualizar `tasks/<task_id>` con What / Why / Where / Learned y **Status: done**. Opcionalmente actualizar `sprints/sprint-XX` si el sprint queda completo.
+7. Al terminar: tests pasando; delega el commit/PR a `git-pr` (no ejecutes `git` a mano). Luego actualizar `tasks/<task_id>` con What / Why / Where / Learned y **Status: done**. Opcionalmente actualizar `sprints/sprint-XX` si el sprint queda completo.
 
 **Orquestador y subagentes:** El agente principal orquesta; **no implementa código ni ejecuta tests ni git a mano**. Ver `docs/architecture/orchestrator-flow.md`. Flujo Git por tarea (rama → trabajo → test → debug si falla → test de nuevo → commits legibles → push → PR): `docs/architecture/git-workflow.md`. Subagentes a usar:
 - **ai-worker**: **obligatorio para implementación**: cualquier cambio de código (feature, refactor, CRUD, integración) se delega en ai-worker con la misión y el contexto (topic_key, ficheros, criterios). El orquestador no escribe el código.

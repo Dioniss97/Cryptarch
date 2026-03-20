@@ -1,5 +1,9 @@
 # Tasks por prioridad (referencia / semilla)
 
+> Este documento te orienta sobre "que toca" por sprint.
+> Para entender como ejecutar el trabajo, ve a `../architecture/orchestrator-flow.md` y `../architecture/git-workflow.md`.
+> Para una vista general del proyecto, empieza por `../../README.md`.
+
 **La fuente de verdad es Engram.** El estado de sprints y tasks, los criterios de aceptación y qué toca hacer viven en memorias `sprints/sprint-XX` y `tasks/task-XX`. Consultar siempre Engram primero (`mem_search` "Status: pending", "sprints sprint", etc.).
 
 Este fichero sirve de **referencia** y de **semilla**: si Engram no tiene aún un sprint o sus tasks, se usa este doc (y el `sprint-XX.md` correspondiente) para crear o completar esas memorias. Una vez poblado, el agente trabaja desde Engram.
@@ -112,3 +116,10 @@ Doc: `sprint-05-chat-rag-actions.md`. Tasks: task-19 … task-22 (desglose en En
 Redacción, auditoría, métricas, revisión de rendimiento. Tasks se desglosan al abrir.
 
 Las tasks concretas viven en Engram (`tasks/<id>`); este doc es semilla para bootstrap.
+
+## Como usar este documento sin perderte
+
+1. Elige sprint y task de referencia aqui.
+2. Confirma estado real en Engram (`Status: pending|in_progress|blocked|done`).
+3. Ejecuta flujo con orquestador y subagentes (`../architecture/orchestrator-flow.md`).
+4. Cierra cambios con git/PR siguiendo `../architecture/git-workflow.md`.

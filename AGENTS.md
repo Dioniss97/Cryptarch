@@ -1,6 +1,12 @@
 # Guía de roles y skills (Cursor)
 
+> Si vienes desde `README.md`, este documento te explica como trabajar el dia a dia con agentes.
+> Si quieres el flujo operativo paso a paso, continua en `docs/architecture/orchestrator-flow.md`.
+
 El **agente principal actúa como orquestador**: coordina subagentes, mantiene estado en Engram y no ejecuta tests ni git a mano. **Engram es la piedra angular**: solo el orquestador escribe en Engram; los subagentes reciben instrucciones y referencias (observation_id, topic_key) para leer lo necesario. Flujo en `docs/architecture/orchestrator-flow.md`; protocolo Engram-agentes en `docs/architecture/engram-agent-protocol.md`.
+
+Para activar este comportamiento de forma explicita en chat, usa el comando:
+- `/orchestrator`
 
 ## Rol orquestador
 
@@ -18,7 +24,7 @@ Todos los subagentes son **solo lectura** en Engram (mem_search, mem_get_observa
 | Subagente | Definición | Uso |
 |-----------|------------|-----|
 | **test-runner** | `.cursor/agents/test-runner.md` | Ejecutar tests; no invocar `pytest` en terminal. Si fallan, reportar para que el orquestador invoque al debugger. |
-| **git-pr** | `.cursor/agents/git-pr.md` | Ramas por tarea (`task/<id>`), Conventional Commits, push, apertura/actualización de PRs. Puede recibir ref. a `tasks/<id>` para título/descripción del PR. |
+| **git-pr** | `.cursor/agents/git-pr.md` | Ramas por sprint (`SprintX` o `SprintX-Y`), Conventional Commits, push, apertura/actualización de PRs. Puede recibir ref. a `tasks/<id>` para título/descripción del PR. |
 | **debugger** | `.cursor/agents/debugger.md` | Cuando un test falla: el orquestador escribe el brief en Engram y pasa la referencia; el debugger consulta por id/key, diagnostica, aplica fix y reporta. No lanza tests. |
 | **ai-worker** | `.cursor/agents/ai-worker.md` | Implementar lo que asigne el orquestador; consultar en Engram las observaciones/topic_keys que el orquestador indique (tarea, criterios, docs). |
 | **architecture-reviewer** (opcional) | `.cursor/agents/architecture-reviewer.md` | Misiones concretas de análisis: revisar estructura de carpetas, patrones, consistencia con docs; reportar al orquestador (no escribe en Engram). |
@@ -46,3 +52,9 @@ Si el sistema permite invocar por nombre, usar el subagente; si solo hay shell, 
 - **Después de implementar** → docs-sync.
 
 Las reglas en `.cursor/rules/` enlazan workflows (task, doc, knowledge) y skills por ámbito (p. ej. `apps/api/**` → fastapi-tdd).
+
+## Siguiente lectura recomendada
+
+- Para el flujo detallado de coordinacion: `docs/architecture/orchestrator-flow.md`.
+- Para como cerrar cambios con git y PR: `docs/architecture/git-workflow.md`.
+- Para escoger trabajo por prioridad: `docs/sprints/tasks.md`.
