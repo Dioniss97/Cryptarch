@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <strong>Scaffold multi-tenant para RAG + Actions</strong><br>
+  <strong>Proyecto en desarrollo: SaaS multi-tenant RAG + Actions</strong><br>
   <em>Agent-first. Orquestador + subagentes. Desarrollo guiado por documentacion.</em>
 </p>
 
@@ -19,7 +19,7 @@
 
 ---
 
-Cryptarch es un scaffold para construir una plataforma SaaS multi-tenant de **RAG + Actions**.
+Cryptarch es un **proyecto en desarrollo** de plataforma SaaS multi-tenant con **RAG + Actions** (API, admin web, worker y stack con Docker).
 La idea de producto es sencilla:
 - admins gestionan usuarios, grupos, filtros, conectores y documentos;
 - usuarios finales usan chat;
