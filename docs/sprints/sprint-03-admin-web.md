@@ -1,7 +1,7 @@
 # sprint-03-admin-web
 
 ## Goal
-Build React admin UI for managing core entities.
+Build the React admin MVP foundation for managing core entities.
 
 ## In scope
 - admin layout/menu
@@ -15,3 +15,4 @@ Build React admin UI for managing core entities.
 - admin can manage all entities from UI
 - filter builder reflects AND semantics
 - errors are visible
+- advanced UX polish and guided non-technical flows are addressed in Sprint 03.1

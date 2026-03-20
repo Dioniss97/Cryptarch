@@ -109,6 +109,8 @@ def test_effective_actions_union(db_session: Session, tenant, tags):
     g1 = Group(id=_id(), tenant_id=tenant.id, name="G1")
     g2 = Group(id=_id(), tenant_id=tenant.id, name="G2")
     db_session.add_all([g1, g2])
+    db_session.flush()
+
     db_session.add(GroupUserFilter(group_id=g1.id, saved_filter_id=f_user.id))
     db_session.add(GroupActionFilter(group_id=g1.id, saved_filter_id=f_act1.id))
     db_session.add(GroupUserFilter(group_id=g2.id, saved_filter_id=f_user.id))
@@ -168,6 +170,8 @@ def test_tenant_isolation(db_session: Session, tenant, tags):
     g1 = Group(id=_id(), tenant_id=tenant.id, name="G1")
     g2 = Group(id=_id(), tenant_id=tenant2.id, name="G2")
     db_session.add_all([g1, g2])
+    db_session.flush()
+
     db_session.add(GroupUserFilter(group_id=g1.id, saved_filter_id=f_user_t1.id))
     db_session.add(GroupActionFilter(group_id=g1.id, saved_filter_id=f_act_t1.id))
     db_session.add(GroupUserFilter(group_id=g2.id, saved_filter_id=f_user_t2.id))

@@ -1,52 +1,169 @@
-# Claude Code Project Context Pack
+<h1 align="center">Cryptarch</h1>
 
-This repository is a **context-first scaffold** for building a multi-tenant RAG + Actions platform using **FastAPI + React + Postgres + Qdrant + Redis workers**. It works with **Claude Code (CLI)** and with **Cursor**.
+<p align="center">
+  <img src="docs/assets/cryptarch-banner.png" alt="Cryptarch banner" width="1024" />
+</p>
 
-It intentionally focuses on:
-- project memory (`.claude/CLAUDE.md`; en Cursor: `.cursor/rules/` + `AGENTS.md`)
-- reusable skills (slash commands en Claude Code; skills en `.cursor/skills/` en Cursor)
-- roles/agents (subagents en Claude Code; guía en `AGENTS.md` en Cursor)
-- sprint docs
-- architecture/domain rules
+<p align="center">
+  <strong>Scaffold multi-tenant para RAG + Actions</strong><br>
+  <em>Agent-first. Orquestador + subagentes. Desarrollo guiado por documentacion.</em>
+</p>
 
-It does **not** include full application code yet. The goal is to generate code consistently from a strong project contract.
+<p align="center">
+  <a href="#quick-start-docker-desktop">Quick Start</a> &bull;
+  <a href="#como-se-trabaja-con-agentes">Agentes</a> &bull;
+  <a href="#estructura-del-repositorio">Estructura</a> &bull;
+  <a href="#documentacion-recomendada">Documentacion</a> &bull;
+  <a href="#troubleshooting-rapido">Troubleshooting</a>
+</p>
 
-## Uso con Cursor
+---
 
-Abre el proyecto en Cursor. Las reglas en `.cursor/rules/` y las skills en `.cursor/skills/` se aplican automáticamente. Para sprints, pide en lenguaje natural, por ejemplo:
-- *"¿Cuál es el siguiente sprint?"* / *"Siguiente sprint"*
-- *"Inicia el sprint 02"* / *"Sprint start sprint-02-auth-admin-api"*
-- *"Audita el sprint 01"*
+Cryptarch es un scaffold para construir una plataforma SaaS multi-tenant de **RAG + Actions**.
+La idea de producto es sencilla:
+- admins gestionan usuarios, grupos, filtros, conectores y documentos;
+- usuarios finales usan chat;
+- el chat solo puede consultar documentos y ejecutar acciones permitidas por tenant y grupos.
 
-Consulta `AGENTS.md` para saber qué skill aplicar en cada tipo de tarea (backend, admin UI, ingestión, etc.).
+El proyecto sigue un enfoque **agent-first**: se trabaja con un orquestador que coordina subagentes para implementar, testear y publicar cambios de forma consistente.
 
-## Project objective
+Si acabas de llegar, empieza por el Quick Start.
 
-Build a multi-tenant SaaS where:
-- **Admins** manage users, groups, tags, filters, connectors, actions, and documents.
-- **Normal users** only see a **chat UI**.
-- The chat can:
-  - query only the documents allowed for the user's groups (RAG scope)
-  - execute only the actions allowed for the user's groups (connector/action scope)
+## Indice
 
-## Core authorization model (important)
+- [Quick Start (Docker Desktop)](#quick-start-docker-desktop)
+- [Que hace Cryptarch](#que-hace-cryptarch)
+- [Como se trabaja con agentes](#como-se-trabaja-con-agentes)
+- [Estructura del repositorio](#estructura-del-repositorio)
+- [Stack tecnico](#stack-tecnico)
+- [Documentacion recomendada](#documentacion-recomendada)
+- [Troubleshooting rapido](#troubleshooting-rapido)
 
-Permissions are not stored directly on tags.
+## Quick Start (Docker Desktop)
 
-Instead:
-1. Entities carry **tags** (`users`, `actions`, `documents`)
-2. Admins create **saved filters** using tag AND logic
-3. Groups bind to those saved filters:
-   - one or more user filters
-   - one or more action filters
-   - one or more document filters
-4. Effective permissions for a user = union of the permissions from all groups the user belongs to
+La forma recomendada y mas simple de arrancar el proyecto es Docker Desktop.
+Con un solo comando levantas API, web, worker y dependencias.
 
-## Primer uso con Claude Code (CLI)
+### Requisitos
 
-1. Abre el repo en terminal.
-2. Inicia Claude Code.
-3. Ejecuta `/memory` y comprueba que `.claude/CLAUDE.md` está cargado.
-4. Ejecuta `/agents` y revisa los subagentes.
-5. Ejecuta `/sprint-next` para elegir el siguiente sprint.
-6. Ejecuta `/sprint-start sprint-00-foundation` para empezar.
+- Docker Desktop instalado y en ejecucion.
+- Git instalado.
+
+### Arranque en 4 pasos
+
+1. Clona el repositorio y entra en la carpeta:
+   - `git clone <url-del-repo>`
+   - `cd Cryptarch`
+2. Copia variables de entorno:
+   - `cp infra/.env.example .env`
+3. Levanta todo el stack:
+   - `docker compose -f infra/docker-compose.dev.yml up -d`
+4. Verifica que los servicios estan en marcha:
+   - `docker compose -f infra/docker-compose.dev.yml ps`
+
+### Servicios principales
+
+| Servicio | URL / Puerto | Uso |
+|---|---|---|
+| API | `http://localhost:8000` | Backend principal (FastAPI). |
+| Web | `http://localhost:3000` | Frontend admin + chat. |
+| Postgres | `localhost:5432` | Base de datos relacional. |
+| Redis | `localhost:6379` | Cola/cache para procesos async. |
+| Qdrant | `http://localhost:6333` | Base de datos vectorial (RAG). |
+
+### Parar el entorno
+
+- `docker compose -f infra/docker-compose.dev.yml down`
+
+### Reinicio limpio (opcional)
+
+Si quieres borrar volumenes locales y empezar desde cero:
+- `docker compose -f infra/docker-compose.dev.yml down -v`
+
+## Que hace Cryptarch
+
+### Objetivo funcional
+
+- Admins gestionan usuarios, grupos, tags, filtros guardados, conectores, acciones y documentos.
+- Usuarios finales solo ven chat.
+- El chat consulta solo documentos permitidos y ejecuta solo acciones permitidas por permisos efectivos de grupo.
+
+### Modelo de autorizacion (resumen)
+
+- Los tags son metadatos; no guardan permisos por si solos.
+- Los permisos salen de `SavedFilters` + `Groups`.
+- Permisos efectivos de un usuario = union de permisos de todos sus grupos.
+- Todo es tenant-scoped (`tenant_id`).
+
+## Como se trabaja con agentes
+
+Cryptarch esta pensado para trabajar con jerarquia de agentes:
+
+| Rol | Agente | Responsabilidad |
+|---|---|---|
+| Coordinacion | **Orquestador** | Coordina el flujo y decide el siguiente paso. |
+| Implementacion | `ai-worker` | Implementacion de codigo y cambios funcionales. |
+| Validacion | `test-runner` | Ejecucion de tests y reporte de resultados. |
+| Correccion | `debugger` | Diagnostico/correccion cuando fallan tests. |
+| Entrega | `git-pr` | Rama, commits, push y apertura/actualizacion de PR. |
+| Analisis | `architecture-reviewer` | Revisiones de arquitectura/documentacion. |
+
+### Activar modo orquestador en Cursor
+
+En el chat de Cursor, escribe:
+- `/orchestrator`
+
+No hace falta escribir la ruta del fichero. Con `/` veras los comandos disponibles.
+
+## Estructura del repositorio
+
+| Ruta | Que contiene | Notas |
+|---|---|---|
+| `apps/api/` | API FastAPI | Capas `presentation/application/domain/infrastructure/tests`. |
+| `apps/web/` | Frontend React | Admin + chat. |
+| `workers/vectorizer/` | Worker de ingestion/vectorizacion | Pipeline hacia Qdrant. |
+| `packages/shared/` | Contratos y constantes compartidas | Reutilizable entre componentes. |
+| `infra/` | Infra local | Docker Compose y entorno de desarrollo. |
+| `docs/` | Documentacion de arquitectura/dominio/sprints | Guia de contexto y alcance. |
+| `.cursor/` | Config de trabajo con IA | Reglas, skills, agentes y comandos. |
+
+## Stack tecnico
+
+- Backend: Python 3.11 + FastAPI
+- Frontend: React + Vite
+- DB: Postgres 16
+- Cola/cache: Redis 7
+- Vector DB: Qdrant
+- Infra local: Docker Compose
+
+## Documentacion recomendada
+
+Orden sugerido para entender el proyecto de menos a mas:
+
+| Orden | Documento | Para que sirve |
+|---|---|---|
+| 1 | `README.md` | Punto de entrada: vision general y quick start. |
+| 2 | `AGENTS.md` | Mapa de roles, skills y subagentes; cuando delegar y como. |
+| 3 | `docs/architecture/orchestrator-flow.md` | Flujo operativo completo del orquestador con subagentes. |
+| 4 | `docs/architecture/git-workflow.md` | Convenciones de ramas/commits/PR y cierre de trabajo. |
+| 5 | `docs/sprints/tasks.md` | Backlog de referencia para priorizar y poblar Engram. |
+
+## Troubleshooting rapido
+
+### Un servicio no arranca
+
+- Ver estado: `docker compose -f infra/docker-compose.dev.yml ps`
+- Ver logs: `docker compose -f infra/docker-compose.dev.yml logs -f <service>`
+
+Servicios comunes: `api`, `web`, `worker`, `postgres`, `redis`, `qdrant`.
+
+### Puerto ocupado
+
+Si `3000`, `8000`, `5432`, `6379` o `6333` estan ocupados:
+- cierra el proceso local que use ese puerto, o
+- cambia los puertos en `infra/docker-compose.dev.yml`.
+
+### Primer arranque lento
+
+Es normal: se instalan dependencias de Python y Node dentro de contenedores.
+Los siguientes arranques suelen ser mas rapidos.
