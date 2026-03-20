@@ -1,11 +1,11 @@
-# Claude Code Project Context Pack
+# Cryptarch Project Context Pack
 
-This repository is a **context-first scaffold** for building a multi-tenant RAG + Actions platform using **FastAPI + React + Postgres + Qdrant + Redis workers**. It works with **Claude Code (CLI)** and with **Cursor**.
+This repository is a **context-first scaffold** for building a multi-tenant RAG + Actions platform using **FastAPI + React + Postgres + Qdrant + Redis workers**. It works with **Cursor**.
 
 It intentionally focuses on:
-- project memory (`.claude/CLAUDE.md`; en Cursor: `.cursor/rules/` + `AGENTS.md`)
-- reusable skills (slash commands en Claude Code; skills en `.cursor/skills/` en Cursor)
-- roles/agents (subagents en Claude Code; guía en `AGENTS.md` en Cursor)
+- project memory (Engram + `.cursor/rules/` + `AGENTS.md`)
+- reusable skills (`.cursor/skills/`)
+- roles/agents (subagents en Cursor; guía en `AGENTS.md` en Cursor)
 - sprint docs
 - architecture/domain rules
 
@@ -19,6 +19,16 @@ Abre el proyecto en Cursor. Las reglas en `.cursor/rules/` y las skills en `.cur
 - *"Audita el sprint 01"*
 
 Consulta `AGENTS.md` para saber qué skill aplicar en cada tipo de tarea (backend, admin UI, ingestión, etc.).
+
+## Flujo de trabajo (orquestador + Engram)
+
+El orquestador coordina el ciclo de desarrollo con ayuda de subagentes y Engram:
+- Pides en lenguaje natural “siguiente tarea” o “inicia el sprint X”.
+- El orquestador consulta `sprints/*` y `tasks/<id>` (incluyendo el campo `Status`) en Engram y delega la ejecución a subagentes.
+- Si toca implementación de código, se delega en `ai-worker`; si hace falta, se ejecuta `test-runner` (y en caso de fallo, `debugger` y re-ejecución).
+- Cuando los tests pasan, se delega en `git-pr` para crear rama/commit/push y abrir o actualizar el PR.
+
+Para más detalle: `docs/architecture/orchestrator-flow.md` y `docs/architecture/git-workflow.md`.
 
 ## Project objective
 
@@ -42,11 +52,11 @@ Instead:
    - one or more document filters
 4. Effective permissions for a user = union of the permissions from all groups the user belongs to
 
-## Primer uso con Claude Code (CLI)
+## Primer uso con Cursor
 
-1. Abre el repo en terminal.
-2. Inicia Claude Code.
-3. Ejecuta `/memory` y comprueba que `.claude/CLAUDE.md` está cargado.
-4. Ejecuta `/agents` y revisa los subagentes.
-5. Ejecuta `/sprint-next` para elegir el siguiente sprint.
-6. Ejecuta `/sprint-start sprint-00-foundation` para empezar.
+1. Abre el repo en Cursor.
+2. Asegúrate de revisar `AGENTS.md` para saber qué skill aplicar según el tipo de tarea (backend, admin UI, ingestión, etc.).
+3. Verifica que las reglas en `.cursor/rules/` y las skills en `.cursor/skills/` están disponibles (se aplican automáticamente al abrir el proyecto).
+4. Para elegir el siguiente sprint/tarea, pide en lenguaje natural, por ejemplo:
+   - "¿Cuál es el siguiente sprint?" / "Siguiente sprint"
+   - "Inicia el sprint 02" / "Inicia el sprint sprint-00-foundation"
