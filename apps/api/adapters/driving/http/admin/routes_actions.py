@@ -1,18 +1,8 @@
 """Admin HTTP routes for Actions. Uses core.application.action and repositories."""
+
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-
-from adapters.driven.persistence.action_repository import ActionRepositoryImpl
-from adapters.driven.persistence.connector_repository import SqlAlchemyConnectorRepository
-from adapters.driven.persistence.tag_repository import SqlAlchemyTagRepository
-from adapters.driving.schemas.action import (
-    ActionCreateBody,
-    ActionUpdateBody,
-    action_to_response,
-)
 from core.application import action as action_use_cases
 from core.application.action import (
     ActionNotFoundError,
@@ -20,6 +10,19 @@ from core.application.action import (
     TagNotFoundError,
 )
 from dependencies import CurrentUser, get_db, require_admin
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+
+from adapters.driven.persistence.action_repository import ActionRepositoryImpl
+from adapters.driven.persistence.connector_repository import (
+    SqlAlchemyConnectorRepository,
+)
+from adapters.driven.persistence.tag_repository import SqlAlchemyTagRepository
+from adapters.driving.schemas.action import (
+    ActionCreateBody,
+    ActionUpdateBody,
+    action_to_response,
+)
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -50,8 +53,7 @@ def list_actions(
         current_user.tenant_id, repo, connector_id=connector_id_str
     )
     return [
-        action_to_response(a, tag_ids=repo.get_action_tag_ids(a.id))
-        for a in actions
+        action_to_response(a, tag_ids=repo.get_action_tag_ids(a.id)) for a in actions
     ]
 
 

@@ -1,18 +1,20 @@
 """Request/response schemas for Document (admin)."""
+
 import uuid
 from typing import Protocol
 
 from pydantic import BaseModel
+from shared_contract import DocumentStatus
 
 
 class DocumentCreateBody(BaseModel):
-    status: str = "queued"  # queued | processing | indexed | error
+    status: DocumentStatus = DocumentStatus.queued
     file_path: str | None = None
     tag_ids: list[uuid.UUID] = []
 
 
 class DocumentUpdateBody(BaseModel):
-    status: str | None = None
+    status: DocumentStatus | None = None
     file_path: str | None = None
     tag_ids: list[uuid.UUID] | None = None
 
@@ -46,6 +48,7 @@ def document_to_response(
 
 class DocumentLike(Protocol):
     """Minimal interface for document_to_response (core.domain.models.Document)."""
+
     id: str
     tenant_id: str
     status: str

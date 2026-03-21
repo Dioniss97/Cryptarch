@@ -1,6 +1,10 @@
 """Admin HTTP routes for Documents. Uses core.application.document and DocumentRepository + TagRepository."""
+
 from typing import Annotated
 
+from core.application import document as document_use_cases
+from core.application.document import TagNotFoundError
+from dependencies import CurrentUser, get_db, require_admin
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -11,9 +15,6 @@ from adapters.driving.schemas.document import (
     DocumentUpdateBody,
     document_to_response,
 )
-from core.application import document as document_use_cases
-from core.application.document import TagNotFoundError
-from dependencies import CurrentUser, get_db, require_admin
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -32,8 +33,7 @@ def list_documents(
     repo = SqlAlchemyDocumentRepository(db)
     docs = document_use_cases.list_documents(current_user.tenant_id, repo)
     return [
-        document_to_response(d, tag_ids=repo.get_document_tag_ids(d.id))
-        for d in docs
+        document_to_response(d, tag_ids=repo.get_document_tag_ids(d.id)) for d in docs
     ]
 
 
@@ -45,9 +45,7 @@ def get_document(
 ):
     """Get document by id; 404 if not in current tenant. Response includes tag_ids."""
     repo = SqlAlchemyDocumentRepository(db)
-    doc = document_use_cases.get_document(
-        document_id, current_user.tenant_id, repo
-    )
+    doc = document_use_cases.get_document(document_id, current_user.tenant_id, repo)
     if doc is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -70,7 +68,7 @@ def create_document(
     try:
         doc = document_use_cases.create_document(
             current_user.tenant_id,
-            body.status,
+            body.status.value,
             body.file_path,
             tag_ids_str,
             repo,
@@ -101,7 +99,7 @@ def update_document(
         doc = document_use_cases.update_document(
             document_id,
             current_user.tenant_id,
-            body.status,
+            body.status.value if body.status is not None else None,
             body.file_path,
             tag_ids_str,
             repo,

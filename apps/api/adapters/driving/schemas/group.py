@@ -1,9 +1,9 @@
 """Request/response schemas for Group admin API."""
+
 import uuid
 
-from pydantic import BaseModel
-
 from core.domain.models import Group
+from pydantic import BaseModel
 
 
 class GroupCreateBody(BaseModel):

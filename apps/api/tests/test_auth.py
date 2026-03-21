@@ -2,16 +2,16 @@
 Auth tests: login, token contents, 401 on wrong credentials.
 Require PostgreSQL (same as domain tests).
 """
+
 import uuid
 
 import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
-
 from config import JWT_SECRET
-from domain.models import Tenant, User
-from main import app
 from dependencies import get_db
+from domain.models import Tenant, User
+from fastapi.testclient import TestClient
+from main import app
+from sqlalchemy.orm import Session
 
 
 def _id():
@@ -53,7 +53,11 @@ def test_login_success_returns_token(client: TestClient, db_session: Session, te
 
     response = client.post(
         "/auth/login",
-        json={"tenant_id": tenant.id, "email": "admin@acme.com", "password": "secret123"},
+        json={
+            "tenant_id": tenant.id,
+            "email": "admin@acme.com",
+            "password": "secret123",
+        },
     )
     assert response.status_code == 200
     data = response.json()
@@ -62,9 +66,7 @@ def test_login_success_returns_token(client: TestClient, db_session: Session, te
 
     from jose import jwt
 
-    payload = jwt.decode(
-        data["access_token"], JWT_SECRET, algorithms=["HS256"]
-    )
+    payload = jwt.decode(data["access_token"], JWT_SECRET, algorithms=["HS256"])
     # DB/JWT may return UUID with hyphens; model uses hex
     assert payload["sub"].replace("-", "") == user.id.replace("-", "")
     assert payload["tenant_id"].replace("-", "") == tenant.id.replace("-", "")

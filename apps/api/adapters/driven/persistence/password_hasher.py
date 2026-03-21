@@ -1,6 +1,6 @@
 """Password hasher adapter. Implements core.ports.password_hasher.PasswordHasher using bcrypt."""
-import bcrypt
 
+import bcrypt
 from core.ports.password_hasher import PasswordHasher as PasswordHasherPort
 
 

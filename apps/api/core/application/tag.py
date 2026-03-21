@@ -1,4 +1,5 @@
 """Tag use cases. No SQLAlchemy; orchestrate via TagRepository port."""
+
 from core.domain.models import Tag
 from core.ports.tag_repository import TagRepository
 

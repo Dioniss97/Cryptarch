@@ -1,4 +1,5 @@
 """User use cases. Depend only on core.ports; no adapters or sqlalchemy."""
+
 from core.domain.models import User
 from core.ports.password_hasher import PasswordHasher
 from core.ports.user_repository import UserRepository

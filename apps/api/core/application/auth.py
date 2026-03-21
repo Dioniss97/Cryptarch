@@ -1,4 +1,5 @@
 """Auth use case: login. Depends only on core.ports; no JWT, no config."""
+
 from core.domain.models import User
 from core.ports.password_hasher import PasswordHasher
 from core.ports.user_repository import UserRepository

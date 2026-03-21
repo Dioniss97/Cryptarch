@@ -1,8 +1,10 @@
 """Request/response schemas for User admin API."""
+
 import uuid
-from pydantic import BaseModel
 
 from core.domain.models import User
+from pydantic import BaseModel
+from shared_contract import UserRole
 
 
 def _parse_uuid(value: str) -> uuid.UUID | None:
@@ -19,13 +21,13 @@ def _parse_uuid(value: str) -> uuid.UUID | None:
 
 class UserCreateBody(BaseModel):
     email: str
-    role: str  # admin | user
+    role: UserRole
     password: str
 
 
 class UserUpdateBody(BaseModel):
     email: str | None = None
-    role: str | None = None
+    role: UserRole | None = None
     password: str | None = None
 
 

@@ -1,11 +1,12 @@
 """TagRepository implementation using Session and ORM Tag models."""
+
+from core.domain.models import Tag
+from core.ports.tag_repository import TagRepository
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from adapters.driven.persistence.models import TagOrm
 from adapters.driven.persistence.uuid_utils import normalize_uuid, parse_uuid
-from core.domain.models import Tag
-from core.ports.tag_repository import TagRepository
 
 
 def _orm_to_domain(orm: TagOrm) -> Tag:

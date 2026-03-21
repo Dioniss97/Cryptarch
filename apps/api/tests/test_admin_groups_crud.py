@@ -3,27 +3,26 @@ Admin CRUD groups: list/get/create/update/delete, tenant-scoped.
 - All operations use tenant_id from JWT; filter ids must exist and belong to tenant (404 otherwise).
 - Cross-tenant: 404 (do not leak existence).
 """
+
 import uuid
+from datetime import UTC, datetime, timedelta
 
 import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
-
+from auth.service import hash_password
 from config import JWT_ALGORITHM, JWT_SECRET
+from dependencies import get_db
 from domain.models import (
     Group,
     GroupActionFilter,
-    GroupDocumentFilter,
     GroupUserFilter,
     SavedFilter,
     Tenant,
     User,
 )
-from main import app
-from dependencies import get_db
+from fastapi.testclient import TestClient
 from jose import jwt
-from datetime import datetime, timedelta, timezone
-from auth.service import hash_password
+from main import app
+from sqlalchemy.orm import Session
 
 
 def _uuid_eq(a: str, b: str) -> bool:
@@ -43,8 +42,8 @@ def _make_token(tenant_id: str, user_id: str, role: str) -> str:
         "sub": user_id,
         "tenant_id": tenant_id,
         "role": role,
-        "exp": datetime.now(timezone.utc) + timedelta(hours=1),
-        "iat": datetime.now(timezone.utc),
+        "exp": datetime.now(UTC) + timedelta(hours=1),
+        "iat": datetime.now(UTC),
     }
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
@@ -185,8 +184,12 @@ def test_get_group_same_tenant_200(
     g = Group(id=_id(), tenant_id=tenant.id, name="my-group")
     db_session.add(g)
     db_session.flush()
-    db_session.add(GroupUserFilter(group_id=g.id, saved_filter_id=tenant_filters["user"].id))
-    db_session.add(GroupActionFilter(group_id=g.id, saved_filter_id=tenant_filters["action"].id))
+    db_session.add(
+        GroupUserFilter(group_id=g.id, saved_filter_id=tenant_filters["user"].id)
+    )
+    db_session.add(
+        GroupActionFilter(group_id=g.id, saved_filter_id=tenant_filters["action"].id)
+    )
     db_session.flush()
 
     r = client.get(
@@ -384,9 +387,7 @@ def test_update_group_other_tenant_404(
 # ----- Delete -----
 
 
-def test_delete_group_204(
-    client: TestClient, tenant, admin_user, db_session: Session
-):
+def test_delete_group_204(client: TestClient, tenant, admin_user, db_session: Session):
     g = Group(id=_id(), tenant_id=tenant.id, name="del-group")
     db_session.add(g)
     db_session.flush()

@@ -1,4 +1,5 @@
 """Request/response schemas for Action (admin)."""
+
 import uuid
 from typing import Any, Protocol
 
@@ -54,6 +55,7 @@ def _canonical_str(value: str | None) -> str:
 
 class ActionLike(Protocol):
     """Minimal interface for action_to_response (core.domain.models.Action)."""
+
     id: str
     tenant_id: str
     connector_id: str

@@ -4,6 +4,7 @@ This module exposes SQLAlchemy ORM models and ``Base`` for use by
 Alembic migrations and tests that operate directly on the database.
 Domain entities live in ``core.domain.models`` as pure dataclasses.
 """
+
 from adapters.driven.persistence.models import (  # type: ignore[F401]
     ActionOrm,
     ActionTagOrm,

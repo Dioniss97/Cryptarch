@@ -3,19 +3,19 @@ Admin CRUD saved filters: list/get/create/update/delete, tenant-scoped.
 - All operations use tenant_id from JWT; tag_ids must exist and belong to tenant (404 otherwise).
 - Cross-tenant: 404 (do not leak existence).
 """
+
 import uuid
+from datetime import UTC, datetime, timedelta
 
 import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
-
-from config import JWT_ALGORITHM, JWT_SECRET
-from domain.models import SavedFilter, SavedFilterTag, Tag, Tenant, User
-from main import app
-from dependencies import get_db
-from jose import jwt
-from datetime import datetime, timedelta, timezone
 from auth.service import hash_password
+from config import JWT_ALGORITHM, JWT_SECRET
+from dependencies import get_db
+from domain.models import SavedFilter, SavedFilterTag, Tag, Tenant, User
+from fastapi.testclient import TestClient
+from jose import jwt
+from main import app
+from sqlalchemy.orm import Session
 
 
 def _uuid_eq(a: str, b: str) -> bool:
@@ -35,8 +35,8 @@ def _make_token(tenant_id: str, user_id: str, role: str) -> str:
         "sub": user_id,
         "tenant_id": tenant_id,
         "role": role,
-        "exp": datetime.now(timezone.utc) + timedelta(hours=1),
-        "iat": datetime.now(timezone.utc),
+        "exp": datetime.now(UTC) + timedelta(hours=1),
+        "iat": datetime.now(UTC),
     }
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
@@ -149,7 +149,9 @@ def test_list_filters_non_admin_403(client: TestClient, tenant, db_session: Sess
     )
     db_session.add(u)
     db_session.flush()
-    r = client.get("/admin/filters", headers=_auth_headers(tenant.id, u.id, role="user"))
+    r = client.get(
+        "/admin/filters", headers=_auth_headers(tenant.id, u.id, role="user")
+    )
     assert r.status_code == 403
 
 
@@ -194,9 +196,7 @@ def test_get_filter_with_tag_ids(
     db_session.add(target)
     db_session.flush()
     for tag in tenant_tags:
-        db_session.add(
-            SavedFilterTag(saved_filter_id=target.id, tag_id=tag.id)
-        )
+        db_session.add(SavedFilterTag(saved_filter_id=target.id, tag_id=tag.id))
     db_session.flush()
 
     r = client.get(
@@ -290,12 +290,15 @@ def test_create_filter_tag_not_found_404(
 
 
 def test_create_filter_tag_other_tenant_404(
-    client: TestClient, tenant, other_tenant, admin_user, tenant_tags, db_session: Session
+    client: TestClient,
+    tenant,
+    other_tenant,
+    admin_user,
+    tenant_tags,
+    db_session: Session,
 ):
     """tag_ids reference tag from other tenant -> 404."""
-    other_tag = Tag(
-        id=_id(), tenant_id=other_tenant.id, name="other-tag"
-    )
+    other_tag = Tag(id=_id(), tenant_id=other_tenant.id, name="other-tag")
     db_session.add(other_tag)
     db_session.flush()
     r = client.post(
@@ -324,9 +327,7 @@ def test_update_filter_200(
     )
     db_session.add(target)
     db_session.flush()
-    db_session.add(
-        SavedFilterTag(saved_filter_id=target.id, tag_id=tenant_tags[0].id)
-    )
+    db_session.add(SavedFilterTag(saved_filter_id=target.id, tag_id=tenant_tags[0].id))
     db_session.flush()
 
     r = client.patch(
@@ -384,9 +385,7 @@ def test_update_filter_other_tenant_404(
 # ----- Delete -----
 
 
-def test_delete_filter_204(
-    client: TestClient, tenant, admin_user, db_session: Session
-):
+def test_delete_filter_204(client: TestClient, tenant, admin_user, db_session: Session):
     target = SavedFilter(
         id=_id(),
         tenant_id=tenant.id,

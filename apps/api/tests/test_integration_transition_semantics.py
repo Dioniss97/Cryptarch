@@ -7,8 +7,14 @@ from core.ports.action_repository import ActionRepository, IntegrationActionRepo
 from core.ports.connector_repository import ConnectorRepository, IntegrationRepository
 from domain.models import (
     Action as ActionOrm,
+)
+from domain.models import (
     Connector as ConnectorOrm,
+)
+from domain.models import (
     Integration as IntegrationOrm,
+)
+from domain.models import (
     IntegrationAction as IntegrationActionOrm,
 )
 
@@ -141,7 +147,9 @@ def test_integration_action_use_cases_map_integration_id_to_connector_id():
     tag_repo = _TagRepoStub()
     tenant_id = _id()
     integration = connector_repo.add(
-        Connector(tenant_id=tenant_id, base_url="https://api.example.com", auth_config=None)
+        Connector(
+            tenant_id=tenant_id, base_url="https://api.example.com", auth_config=None
+        )
     )
 
     created = integration_action_use_cases.create_integration_action(

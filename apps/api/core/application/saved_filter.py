@@ -2,6 +2,7 @@
 Saved Filter use cases. Orchestrate SavedFilterRepository (and TagRepository for tag validation).
 No Session or DB in this module; ports are injected.
 """
+
 from core.domain.models import SavedFilter
 from core.ports.saved_filter_repository import SavedFilterRepository
 from core.ports.tag_repository import TagRepository

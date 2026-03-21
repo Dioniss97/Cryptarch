@@ -1,8 +1,7 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-
 from adapters.driving.http.admin.routes import router as admin_router
 from adapters.driving.http.auth.routes import router as auth_router
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="RAG SaaS API")
 app.add_middleware(

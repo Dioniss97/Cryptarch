@@ -3,19 +3,19 @@ Admin CRUD connectors: list/get/create/update/delete, tenant-scoped.
 - All operations use tenant_id from JWT; cross-tenant returns 404.
 - DELETE returns 409 if connector has associated actions.
 """
+
 import uuid
+from datetime import UTC, datetime, timedelta
 
 import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
-
-from config import JWT_ALGORITHM, JWT_SECRET
-from domain.models import Action, Connector, Tenant, User
-from main import app
-from dependencies import get_db
-from jose import jwt
-from datetime import datetime, timedelta, timezone
 from auth.service import hash_password
+from config import JWT_ALGORITHM, JWT_SECRET
+from dependencies import get_db
+from domain.models import Action, Connector, Tenant, User
+from fastapi.testclient import TestClient
+from jose import jwt
+from main import app
+from sqlalchemy.orm import Session
 
 
 def _uuid_eq(a: str, b: str) -> bool:
@@ -34,8 +34,8 @@ def _make_token(tenant_id: str, user_id: str, role: str) -> str:
         "sub": user_id,
         "tenant_id": tenant_id,
         "role": role,
-        "exp": datetime.now(timezone.utc) + timedelta(hours=1),
-        "iat": datetime.now(timezone.utc),
+        "exp": datetime.now(UTC) + timedelta(hours=1),
+        "iat": datetime.now(UTC),
     }
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
@@ -131,7 +131,9 @@ def test_list_connectors_tenant_scoped(
     assert r.status_code == 200
     data = r.json()
     ids = [c["id"] for c in data]
-    assert other_c.id not in ids and str(uuid.UUID(other_c.id)) not in [str(uuid.UUID(i)) for i in ids]
+    assert other_c.id not in ids and str(uuid.UUID(other_c.id)) not in [
+        str(uuid.UUID(i)) for i in ids
+    ]
 
 
 def test_list_connectors_unauth_401(client: TestClient):
@@ -149,7 +151,9 @@ def test_list_connectors_non_admin_403(client: TestClient, tenant, db_session: S
     )
     db_session.add(u)
     db_session.flush()
-    r = client.get("/admin/connectors", headers=_auth_headers(tenant.id, u.id, role="user"))
+    r = client.get(
+        "/admin/connectors", headers=_auth_headers(tenant.id, u.id, role="user")
+    )
     assert r.status_code == 403
 
 
@@ -282,7 +286,9 @@ def test_delete_connector_204(client: TestClient, tenant, admin_user, connector)
     )
     assert r.status_code == 204
 
-    r2 = client.get(f"/admin/connectors/{cid}", headers=_auth_headers(tenant.id, admin_user.id))
+    r2 = client.get(
+        f"/admin/connectors/{cid}", headers=_auth_headers(tenant.id, admin_user.id)
+    )
     assert r2.status_code == 404
 
 

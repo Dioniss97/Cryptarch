@@ -4,19 +4,19 @@ Admin CRUD documents (metadata): list/get/create/update/delete, tenant-scoped.
 - POST body: status (default queued), file_path optional, tag_ids optional.
 - Responses include tag_ids in get/list. tag_ids validated against tenant in create/update.
 """
+
 import uuid
+from datetime import UTC, datetime, timedelta
 
 import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
-
-from config import JWT_ALGORITHM, JWT_SECRET
-from domain.models import Document, DocumentTag, Tag, Tenant, User
-from main import app
-from dependencies import get_db
-from jose import jwt
-from datetime import datetime, timedelta, timezone
 from auth.service import hash_password
+from config import JWT_ALGORITHM, JWT_SECRET
+from dependencies import get_db
+from domain.models import Document, DocumentTag, Tag, Tenant, User
+from fastapi.testclient import TestClient
+from jose import jwt
+from main import app
+from sqlalchemy.orm import Session
 
 
 def _uuid_eq(a: str, b: str) -> bool:
@@ -35,8 +35,8 @@ def _make_token(tenant_id: str, user_id: str, role: str) -> str:
         "sub": user_id,
         "tenant_id": tenant_id,
         "role": role,
-        "exp": datetime.now(timezone.utc) + timedelta(hours=1),
-        "iat": datetime.now(timezone.utc),
+        "exp": datetime.now(UTC) + timedelta(hours=1),
+        "iat": datetime.now(UTC),
     }
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
@@ -183,7 +183,9 @@ def test_list_documents_non_admin_403(client: TestClient, tenant, db_session: Se
     )
     db_session.add(u)
     db_session.flush()
-    r = client.get("/admin/documents", headers=_auth_headers(tenant.id, u.id, role="user"))
+    r = client.get(
+        "/admin/documents", headers=_auth_headers(tenant.id, u.id, role="user")
+    )
     assert r.status_code == 403
 
 
@@ -237,8 +239,12 @@ def test_get_document_with_tag_ids_200(
     assert r.status_code == 200
     data = r.json()
     assert len(data["tag_ids"]) == 2
-    assert _uuid_eq(data["tag_ids"][0], tag_a.id) or _uuid_eq(data["tag_ids"][1], tag_a.id)
-    assert _uuid_eq(data["tag_ids"][0], tag_b.id) or _uuid_eq(data["tag_ids"][1], tag_b.id)
+    assert _uuid_eq(data["tag_ids"][0], tag_a.id) or _uuid_eq(
+        data["tag_ids"][1], tag_a.id
+    )
+    assert _uuid_eq(data["tag_ids"][0], tag_b.id) or _uuid_eq(
+        data["tag_ids"][1], tag_b.id
+    )
 
 
 def test_get_document_other_tenant_404(
@@ -313,8 +319,12 @@ def test_create_document_201_with_tag_ids(
     assert r.status_code == 201
     data = r.json()
     assert len(data["tag_ids"]) == 2
-    assert _uuid_eq(data["tag_ids"][0], tag_a.id) or _uuid_eq(data["tag_ids"][1], tag_a.id)
-    assert _uuid_eq(data["tag_ids"][0], tag_b.id) or _uuid_eq(data["tag_ids"][1], tag_b.id)
+    assert _uuid_eq(data["tag_ids"][0], tag_a.id) or _uuid_eq(
+        data["tag_ids"][1], tag_a.id
+    )
+    assert _uuid_eq(data["tag_ids"][0], tag_b.id) or _uuid_eq(
+        data["tag_ids"][1], tag_b.id
+    )
 
 
 def test_create_document_tag_ids_other_tenant_404(
@@ -337,7 +347,9 @@ def test_create_document_tag_ids_other_tenant_404(
     assert r.status_code == 404
 
 
-def test_create_document_tag_ids_invalid_uuid_422(client: TestClient, tenant, admin_user):
+def test_create_document_tag_ids_invalid_uuid_422(
+    client: TestClient, tenant, admin_user
+):
     r = client.post(
         "/admin/documents",
         headers=_auth_headers(tenant.id, admin_user.id),

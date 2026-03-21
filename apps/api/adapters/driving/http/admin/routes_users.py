@@ -1,6 +1,9 @@
 """Admin HTTP routes for Users. Uses core.application.user use cases and UserRepositoryImpl."""
+
 from typing import Annotated
 
+from core.application import user as user_use_cases
+from dependencies import CurrentUser, get_db, require_admin
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -11,8 +14,6 @@ from adapters.driving.schemas.user import (
     UserUpdateBody,
     user_to_response,
 )
-from core.application import user as user_use_cases
-from dependencies import CurrentUser, get_db, require_admin
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -38,7 +39,9 @@ def get_user(
     repo = UserRepositoryImpl(db)
     user = user_use_cases.get_user(user_id, current_user.tenant_id, repo)
     if user is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
     return user_to_response(user)
 
 
@@ -55,7 +58,7 @@ def create_user(
         user = user_use_cases.create_user(
             tenant_id=current_user.tenant_id,
             email=body.email,
-            role=body.role,
+            role=body.role.value,
             password=body.password,
             repo=repo,
             password_hasher=password_hasher,
@@ -90,13 +93,15 @@ def update_user(
         tenant_id=current_user.tenant_id,
         repo=repo,
         email=body.email,
-        role=body.role,
+        role=body.role.value if body.role is not None else None,
         password=body.password,
         password_hasher=password_hasher,
     )
     if user is None:
         db.rollback()
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
     db.commit()
     return user_to_response(user)
 
@@ -112,6 +117,8 @@ def delete_user(
     deleted = user_use_cases.delete_user(user_id, current_user.tenant_id, repo)
     if not deleted:
         db.rollback()
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
     db.commit()
     return None

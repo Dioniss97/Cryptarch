@@ -2,6 +2,12 @@
 Implementation of PermissionQueryPort. Resolves allowed actions/documents for a user.
 All SQL and Session usage lives here (driven adapter).
 """
+
+from core.ports.permission_query import PermissionQueryPort
+from shared_contract import (
+    SAVED_FILTER_TARGET_DOCUMENT,
+    SAVED_FILTER_TARGET_USER,
+)
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -18,7 +24,6 @@ from adapters.driven.persistence.models import (
     UserTagOrm,
 )
 from adapters.driven.persistence.uuid_utils import normalize_uuid, parse_uuid, to_hex
-from core.ports.permission_query import PermissionQueryPort
 
 
 def entity_has_all_filter_tags(
@@ -35,7 +40,7 @@ def entity_has_all_filter_tags(
     ]
     if not filter_tag_ids:
         return True
-    if target_type == "user":
+    if target_type == SAVED_FILTER_TARGET_USER:
         entity_tag_ids = [
             r[0]
             for r in session.execute(
@@ -49,7 +54,7 @@ def entity_has_all_filter_tags(
                 select(ActionTagOrm.tag_id).where(ActionTagOrm.action_id == entity_id)
             ).all()
         ]
-    elif target_type == "document":
+    elif target_type == SAVED_FILTER_TARGET_DOCUMENT:
         entity_tag_ids = [
             r[0]
             for r in session.execute(
@@ -63,7 +68,9 @@ def entity_has_all_filter_tags(
     return set(filter_tag_ids) <= set(entity_tag_ids)
 
 
-def _group_ids_where_user_matches(session: Session, tenant_id: str, user_id: str) -> list:
+def _group_ids_where_user_matches(
+    session: Session, tenant_id: str, user_id: str
+) -> list:
     """Return group ids (DB ids) where the user matches the group's user filter.
 
     Accepts tenant_id and user_id in hex or canonical form; comparisons are done in a
@@ -74,24 +81,24 @@ def _group_ids_where_user_matches(session: Session, tenant_id: str, user_id: str
     tid_parsed = parse_uuid(tenant_id)
     tenant_hex = tid_parsed.hex if tid_parsed else tenant_id
 
-    rows = (
-        session.execute(
-            select(GroupUserFilterOrm.group_id, GroupUserFilterOrm.saved_filter_id)
-            .select_from(GroupUserFilterOrm)
-            .join(GroupOrm, GroupOrm.id == GroupUserFilterOrm.group_id)
-            .where(
-                GroupOrm.tenant_id.in_(
-                    [
-                        tenant_hex,
-                        tid_norm,
-                    ]
-                )
+    rows = session.execute(
+        select(GroupUserFilterOrm.group_id, GroupUserFilterOrm.saved_filter_id)
+        .select_from(GroupUserFilterOrm)
+        .join(GroupOrm, GroupOrm.id == GroupUserFilterOrm.group_id)
+        .where(
+            GroupOrm.tenant_id.in_(
+                [
+                    tenant_hex,
+                    tid_norm,
+                ]
             )
-        ).all()
-    )
+        )
+    ).all()
     result = []
-    for (group_id, saved_filter_id) in rows:
-        if entity_has_all_filter_tags(session, "user", user_id, saved_filter_id):
+    for group_id, saved_filter_id in rows:
+        if entity_has_all_filter_tags(
+            session, SAVED_FILTER_TARGET_USER, user_id, saved_filter_id
+        ):
             result.append(group_id)
     return result
 
@@ -203,9 +210,7 @@ def resolve_effective_document_ids(
             )
         ).all()
         for (saved_filter_id,) in rows:
-            result |= _document_ids_matching_filter(
-                session, tenant_id, saved_filter_id
-            )
+            result |= _document_ids_matching_filter(session, tenant_id, saved_filter_id)
     return result
 
 

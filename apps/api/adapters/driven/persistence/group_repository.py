@@ -4,6 +4,9 @@ GroupActionFilter, GroupDocumentFilter). Validates that saved filter ids exist a
 belong to the group's tenant before add/save; raises FilterNotFoundInTenantError
 if any filter is missing or not in tenant.
 """
+
+from core.domain.models import Group
+from core.ports.group_repository import GroupRepository
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
@@ -20,8 +23,6 @@ from adapters.driven.persistence.uuid_utils import (
     parse_uuid,
     to_hex,
 )
-from core.domain.models import Group
-from core.ports.group_repository import GroupRepository
 
 
 class FilterNotFoundInTenantError(Exception):
@@ -87,7 +88,9 @@ class GroupRepositoryImpl(GroupRepository):
             return [str(parse_uuid(r[0]) or r[0]) for r in rows]
 
         uids = ids_from_table(GroupUserFilterOrm, GroupUserFilterOrm.saved_filter_id)
-        aids = ids_from_table(GroupActionFilterOrm, GroupActionFilterOrm.saved_filter_id)
+        aids = ids_from_table(
+            GroupActionFilterOrm, GroupActionFilterOrm.saved_filter_id
+        )
         dids = ids_from_table(
             GroupDocumentFilterOrm, GroupDocumentFilterOrm.saved_filter_id
         )
@@ -135,14 +138,10 @@ class GroupRepositoryImpl(GroupRepository):
         self._session.flush()
         for fid in user_filter_ids:
             h = canonical_to_hex(fid) or to_hex(fid)
-            self._session.add(
-                GroupUserFilterOrm(group_id=orm.id, saved_filter_id=h)
-            )
+            self._session.add(GroupUserFilterOrm(group_id=orm.id, saved_filter_id=h))
         for fid in action_filter_ids:
             h = canonical_to_hex(fid) or to_hex(fid)
-            self._session.add(
-                GroupActionFilterOrm(group_id=orm.id, saved_filter_id=h)
-            )
+            self._session.add(GroupActionFilterOrm(group_id=orm.id, saved_filter_id=h))
         for fid in document_filter_ids:
             h = canonical_to_hex(fid) or to_hex(fid)
             self._session.add(

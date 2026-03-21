@@ -1,9 +1,9 @@
 """Single admin router: assembles all admin sub-routers and GET /admin/me."""
+
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
-
 from dependencies import CurrentUser, require_admin
+from fastapi import APIRouter, Depends
 
 from . import (
     routes_actions,

@@ -1,6 +1,10 @@
 """Auth HTTP routes: login, logout. Uses core.application.auth and JWT in driving layer."""
-from datetime import datetime, timedelta, timezone
 
+from datetime import UTC, datetime, timedelta
+
+from config import JWT_ALGORITHM, JWT_SECRET
+from core.application import auth as auth_use_cases
+from dependencies import get_db
 from fastapi import APIRouter, Depends, HTTPException
 from jose import jwt
 from sqlalchemy.orm import Session
@@ -8,15 +12,12 @@ from sqlalchemy.orm import Session
 from adapters.driven.persistence.password_hasher import PasswordHasherImpl
 from adapters.driven.persistence.user_repository import UserRepositoryImpl
 from adapters.driving.schemas.auth import LoginBody, TokenResponse
-from config import JWT_ALGORITHM, JWT_SECRET
-from core.application import auth as auth_use_cases
-from dependencies import get_db
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 def _create_token(user) -> str:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload = {
         "sub": user.id,
         "tenant_id": user.tenant_id,
