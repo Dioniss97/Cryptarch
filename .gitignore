@@ -4,6 +4,10 @@
 __pycache__/
 .pytest_cache/
 .venv/
+
+# Local tooling (Claude Code, etc.)
+.claude/
+
 node_modules/
 dist/
 build/
