@@ -52,7 +52,7 @@ Con un solo comando levantas API, web, worker y dependencias.
 ### Arranque en 4 pasos
 
 1. Clona el repositorio y entra en la carpeta:
-   - `git clone <url-del-repo>`
+   - `git clone https://github.com/CryptarchHQ/Cryptarch.git`
    - `cd Cryptarch`
 2. Copia variables de entorno:
    - `cp infra/.env.example .env`

@@ -15,6 +15,15 @@
 
 Documento de referencia para agentes y humanos: ciclo de trabajo por sprint que termina en Pull Request. Los agentes pueden consultar este doc (o la memoria Engram `docs/git-workflow` si está digerida) para seguir el flujo sin ambigüedad.
 
+## Repositorio remoto (organización)
+
+- **URL canónica:** `https://github.com/CryptarchHQ/Cryptarch`
+- **Clonar:** `git clone https://github.com/CryptarchHQ/Cryptarch.git`
+- Si tu `origin` sigue apuntando a un fork o a una URL antigua tras un traslado de repo, actualízalo:
+  - `git remote set-url origin https://github.com/CryptarchHQ/Cryptarch.git`
+  - `git fetch origin`
+- Los PRs y el código de GitHub Actions viven en ese repositorio de organización; `gh pr create` y `gh repo view` deben usar el remoto actualizado.
+
 ## Modelo de ramas
 
 | Rama      | Uso |
