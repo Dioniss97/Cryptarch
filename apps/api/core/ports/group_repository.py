@@ -1,15 +1,14 @@
 """Port for Group persistence."""
+
 from typing import Protocol
 
 from core.domain.models import Group
 
 
 class GroupRepository(Protocol):
-    def list_by_tenant(self, tenant_id: str) -> list[Group]:
-        ...
+    def list_by_tenant(self, tenant_id: str) -> list[Group]: ...
 
-    def get_by_id(self, group_id: str, tenant_id: str) -> Group | None:
-        ...
+    def get_by_id(self, group_id: str, tenant_id: str) -> Group | None: ...
 
     def get_group_filter_ids(
         self, group_id: str
@@ -23,8 +22,7 @@ class GroupRepository(Protocol):
         user_filter_ids: list[str],
         action_filter_ids: list[str],
         document_filter_ids: list[str],
-    ) -> Group:
-        ...
+    ) -> Group: ...
 
     def save(
         self,
@@ -32,8 +30,6 @@ class GroupRepository(Protocol):
         user_filter_ids: list[str] | None,
         action_filter_ids: list[str] | None,
         document_filter_ids: list[str] | None,
-    ) -> Group:
-        ...
+    ) -> Group: ...
 
-    def delete(self, group: Group) -> None:
-        ...
+    def delete(self, group: Group) -> None: ...

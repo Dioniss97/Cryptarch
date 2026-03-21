@@ -1,4 +1,5 @@
 """Connector use cases. No SQLAlchemy; orchestrate via ConnectorRepository port."""
+
 from core.domain.models import Connector
 from core.ports.connector_repository import ConnectorRepository
 

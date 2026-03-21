@@ -2,14 +2,14 @@
 Domain tests: tag AND semantics, permission union, tenant isolation.
 Require PostgreSQL (DATABASE_URL or DATABASE_URL_TEST).
 """
+
 import uuid
 
 import pytest
-from sqlalchemy.orm import Session
-
 from domain.models import (
     Action,
     ActionTag,
+    Connector,
     Document,
     DocumentTag,
     Group,
@@ -19,11 +19,11 @@ from domain.models import (
     SavedFilter,
     SavedFilterTag,
     Tag,
+    Tenant,
     User,
     UserTag,
-    Tenant,
-    Connector,
 )
+from sqlalchemy.orm import Session
 
 
 def _id():
@@ -59,7 +59,9 @@ def test_entity_matches_filter_tag_and_semantics(db_session: Session, tenant, ta
     db_session.add(UserTag(user_id=user.id, tag_id=tag_b.id))
     db_session.flush()
 
-    filter_ab = SavedFilter(id=_id(), tenant_id=tenant.id, target_type="user", name="A and B")
+    filter_ab = SavedFilter(
+        id=_id(), tenant_id=tenant.id, target_type="user", name="A and B"
+    )
     db_session.add(filter_ab)
     db_session.add(SavedFilterTag(saved_filter_id=filter_ab.id, tag_id=tag_a.id))
     db_session.add(SavedFilterTag(saved_filter_id=filter_ab.id, tag_id=tag_b.id))
@@ -71,7 +73,10 @@ def test_entity_matches_filter_tag_and_semantics(db_session: Session, tenant, ta
     db_session.add(user_only_a)
     db_session.add(UserTag(user_id=user_only_a.id, tag_id=tag_a.id))
     db_session.flush()
-    assert entity_has_all_filter_tags(db_session, "user", user_only_a.id, filter_ab.id) is False
+    assert (
+        entity_has_all_filter_tags(db_session, "user", user_only_a.id, filter_ab.id)
+        is False
+    )
 
 
 def test_effective_actions_union(db_session: Session, tenant, tags):
@@ -88,20 +93,40 @@ def test_effective_actions_union(db_session: Session, tenant, tags):
     db_session.add(conn)
     db_session.flush()
 
-    action1 = Action(id=_id(), tenant_id=tenant.id, connector_id=conn.id, method="GET", path="/a", name="A")
-    action2 = Action(id=_id(), tenant_id=tenant.id, connector_id=conn.id, method="GET", path="/b", name="B")
+    action1 = Action(
+        id=_id(),
+        tenant_id=tenant.id,
+        connector_id=conn.id,
+        method="GET",
+        path="/a",
+        name="A",
+    )
+    action2 = Action(
+        id=_id(),
+        tenant_id=tenant.id,
+        connector_id=conn.id,
+        method="GET",
+        path="/b",
+        name="B",
+    )
     db_session.add_all([action1, action2])
     db_session.add(ActionTag(action_id=action1.id, tag_id=tag_a.id))
     db_session.add(ActionTag(action_id=action2.id, tag_id=tag_b.id))
     db_session.flush()
 
-    f_user = SavedFilter(id=_id(), tenant_id=tenant.id, target_type="user", name="user A")
+    f_user = SavedFilter(
+        id=_id(), tenant_id=tenant.id, target_type="user", name="user A"
+    )
     db_session.add(f_user)
     db_session.add(SavedFilterTag(saved_filter_id=f_user.id, tag_id=tag_a.id))
-    f_act1 = SavedFilter(id=_id(), tenant_id=tenant.id, target_type="action", name="action A")
+    f_act1 = SavedFilter(
+        id=_id(), tenant_id=tenant.id, target_type="action", name="action A"
+    )
     db_session.add(f_act1)
     db_session.add(SavedFilterTag(saved_filter_id=f_act1.id, tag_id=tag_a.id))
-    f_act2 = SavedFilter(id=_id(), tenant_id=tenant.id, target_type="action", name="action B")
+    f_act2 = SavedFilter(
+        id=_id(), tenant_id=tenant.id, target_type="action", name="action B"
+    )
     db_session.add(f_act2)
     db_session.add(SavedFilterTag(saved_filter_id=f_act2.id, tag_id=tag_b.id))
     db_session.flush()
@@ -123,7 +148,10 @@ def test_effective_actions_union(db_session: Session, tenant, tags):
 
 def test_tenant_isolation(db_session: Session, tenant, tags):
     """Resolving permissions for a user returns only actions/documents from that user's tenant."""
-    from domain.permission_service import resolve_effective_action_ids, resolve_effective_document_ids
+    from domain.permission_service import (
+        resolve_effective_action_ids,
+        resolve_effective_document_ids,
+    )
 
     tenant2 = Tenant(id=_id(), name="Other")
     db_session.add(tenant2)
@@ -146,23 +174,45 @@ def test_tenant_isolation(db_session: Session, tenant, tags):
     db_session.add_all([conn1, conn2])
     db_session.flush()
 
-    action_t1 = Action(id=_id(), tenant_id=tenant.id, connector_id=conn1.id, method="GET", path="/", name="A1")
-    action_t2 = Action(id=_id(), tenant_id=tenant2.id, connector_id=conn2.id, method="GET", path="/", name="A2")
+    action_t1 = Action(
+        id=_id(),
+        tenant_id=tenant.id,
+        connector_id=conn1.id,
+        method="GET",
+        path="/",
+        name="A1",
+    )
+    action_t2 = Action(
+        id=_id(),
+        tenant_id=tenant2.id,
+        connector_id=conn2.id,
+        method="GET",
+        path="/",
+        name="A2",
+    )
     db_session.add_all([action_t1, action_t2])
     db_session.add(ActionTag(action_id=action_t1.id, tag_id=tag_t1.id))
     db_session.add(ActionTag(action_id=action_t2.id, tag_id=tag_t2.id))
     db_session.flush()
 
-    f_user_t1 = SavedFilter(id=_id(), tenant_id=tenant.id, target_type="user", name="u1")
+    f_user_t1 = SavedFilter(
+        id=_id(), tenant_id=tenant.id, target_type="user", name="u1"
+    )
     db_session.add(f_user_t1)
     db_session.add(SavedFilterTag(saved_filter_id=f_user_t1.id, tag_id=tag_t1.id))
-    f_act_t1 = SavedFilter(id=_id(), tenant_id=tenant.id, target_type="action", name="a1")
+    f_act_t1 = SavedFilter(
+        id=_id(), tenant_id=tenant.id, target_type="action", name="a1"
+    )
     db_session.add(f_act_t1)
     db_session.add(SavedFilterTag(saved_filter_id=f_act_t1.id, tag_id=tag_t1.id))
-    f_user_t2 = SavedFilter(id=_id(), tenant_id=tenant2.id, target_type="user", name="u2")
+    f_user_t2 = SavedFilter(
+        id=_id(), tenant_id=tenant2.id, target_type="user", name="u2"
+    )
     db_session.add(f_user_t2)
     db_session.add(SavedFilterTag(saved_filter_id=f_user_t2.id, tag_id=tag_t2.id))
-    f_act_t2 = SavedFilter(id=_id(), tenant_id=tenant2.id, target_type="action", name="a2")
+    f_act_t2 = SavedFilter(
+        id=_id(), tenant_id=tenant2.id, target_type="action", name="a2"
+    )
     db_session.add(f_act_t2)
     db_session.add(SavedFilterTag(saved_filter_id=f_act_t2.id, tag_id=tag_t2.id))
     db_session.flush()
@@ -191,7 +241,9 @@ def test_tenant_isolation(db_session: Session, tenant, tags):
     db_session.add(DocumentTag(document_id=doc1.id, tag_id=tag_t1.id))
     db_session.add(DocumentTag(document_id=doc2.id, tag_id=tag_t2.id))
     db_session.flush()
-    f_doc_t1 = SavedFilter(id=_id(), tenant_id=tenant.id, target_type="document", name="d1")
+    f_doc_t1 = SavedFilter(
+        id=_id(), tenant_id=tenant.id, target_type="document", name="d1"
+    )
     db_session.add(f_doc_t1)
     db_session.add(SavedFilterTag(saved_filter_id=f_doc_t1.id, tag_id=tag_t1.id))
     db_session.flush()

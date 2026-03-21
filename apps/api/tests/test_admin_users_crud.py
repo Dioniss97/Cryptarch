@@ -3,7 +3,19 @@ Admin CRUD users: list/get/create/update/delete, tenant-scoped.
 - All operations use tenant_id from JWT (CurrentUser), never from body.
 - Cross-tenant: 404 (do not leak existence).
 """
+
 import uuid
+from datetime import UTC, datetime, timedelta
+
+import pytest
+from auth.service import hash_password
+from config import JWT_ALGORITHM, JWT_SECRET
+from dependencies import get_db
+from domain.models import Tenant, User
+from fastapi.testclient import TestClient
+from jose import jwt
+from main import app
+from sqlalchemy.orm import Session
 
 
 def _uuid_eq(a: str, b: str) -> bool:
@@ -12,18 +24,6 @@ def _uuid_eq(a: str, b: str) -> bool:
         return uuid.UUID(str(a)) == uuid.UUID(str(b))
     except (ValueError, TypeError):
         return a == b
-
-import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
-
-from config import JWT_ALGORITHM, JWT_SECRET
-from domain.models import Tenant, User
-from main import app
-from dependencies import get_db
-from jose import jwt
-from datetime import datetime, timedelta, timezone
-from auth.service import hash_password
 
 
 def _id():
@@ -35,8 +35,8 @@ def _make_token(tenant_id: str, user_id: str, role: str) -> str:
         "sub": user_id,
         "tenant_id": tenant_id,
         "role": role,
-        "exp": datetime.now(timezone.utc) + timedelta(hours=1),
-        "iat": datetime.now(timezone.utc),
+        "exp": datetime.now(UTC) + timedelta(hours=1),
+        "iat": datetime.now(UTC),
     }
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
@@ -102,7 +102,9 @@ def test_list_users_empty_200(client: TestClient, tenant, admin_user):
     assert len(data) <= 1
 
 
-def test_list_users_tenant_scoped(client: TestClient, tenant, other_tenant, admin_user, db_session: Session):
+def test_list_users_tenant_scoped(
+    client: TestClient, tenant, other_tenant, admin_user, db_session: Session
+):
     """Users from other tenant are not returned."""
     other_user = User(
         id=_id(),
@@ -146,7 +148,9 @@ def test_list_users_non_admin_403(client: TestClient, tenant, db_session: Sessio
 # ----- Get by id -----
 
 
-def test_get_user_same_tenant_200(client: TestClient, tenant, admin_user, db_session: Session):
+def test_get_user_same_tenant_200(
+    client: TestClient, tenant, admin_user, db_session: Session
+):
     target = User(
         id=_id(),
         tenant_id=tenant.id,
@@ -167,7 +171,9 @@ def test_get_user_same_tenant_200(client: TestClient, tenant, admin_user, db_ses
     assert "password_hash" not in r.json()
 
 
-def test_get_user_other_tenant_404(client: TestClient, tenant, other_tenant, admin_user, db_session: Session):
+def test_get_user_other_tenant_404(
+    client: TestClient, tenant, other_tenant, admin_user, db_session: Session
+):
     """Cross-tenant: 404 to avoid leaking existence."""
     other_user = User(
         id=_id(),
@@ -217,7 +223,9 @@ def test_create_user_201(client: TestClient, tenant, admin_user):
     assert "password_hash" not in data
 
 
-def test_create_user_tenant_from_jwt_ignores_body(client: TestClient, tenant, other_tenant, admin_user):
+def test_create_user_tenant_from_jwt_ignores_body(
+    client: TestClient, tenant, other_tenant, admin_user
+):
     """tenant_id in body must be ignored; user is created in JWT tenant."""
     r = client.post(
         "/admin/users",
@@ -233,7 +241,9 @@ def test_create_user_tenant_from_jwt_ignores_body(client: TestClient, tenant, ot
     assert _uuid_eq(r.json()["tenant_id"], tenant.id)
 
 
-def test_create_user_duplicate_email_409(client: TestClient, tenant, admin_user, db_session: Session):
+def test_create_user_duplicate_email_409(
+    client: TestClient, tenant, admin_user, db_session: Session
+):
     db_session.add(
         User(
             id=_id(),
@@ -278,7 +288,9 @@ def test_update_user_200(client: TestClient, tenant, admin_user, db_session: Ses
     assert data["role"] == "admin"
 
 
-def test_update_user_other_tenant_404(client: TestClient, tenant, other_tenant, admin_user, db_session: Session):
+def test_update_user_other_tenant_404(
+    client: TestClient, tenant, other_tenant, admin_user, db_session: Session
+):
     other_user = User(
         id=_id(),
         tenant_id=other_tenant.id,
@@ -319,11 +331,15 @@ def test_delete_user_204(client: TestClient, tenant, admin_user, db_session: Ses
     assert r.status_code == 204
 
     # Verify gone
-    r2 = client.get(f"/admin/users/{uid}", headers=_auth_headers(tenant.id, admin_user.id))
+    r2 = client.get(
+        f"/admin/users/{uid}", headers=_auth_headers(tenant.id, admin_user.id)
+    )
     assert r2.status_code == 404
 
 
-def test_delete_user_other_tenant_404(client: TestClient, tenant, other_tenant, admin_user, db_session: Session):
+def test_delete_user_other_tenant_404(
+    client: TestClient, tenant, other_tenant, admin_user, db_session: Session
+):
     other_user = User(
         id=_id(),
         tenant_id=other_tenant.id,

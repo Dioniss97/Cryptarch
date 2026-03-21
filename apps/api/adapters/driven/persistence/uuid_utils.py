@@ -3,6 +3,7 @@
 All helpers work with string UUIDs and are tolerant to both
 32-char hex and canonical (dashed) forms.
 """
+
 from __future__ import annotations
 
 import uuid
@@ -48,4 +49,3 @@ def eq_uuid(a: str | None, b: str | None) -> bool:
     if ua and ub:
         return ua == ub
     return a == b
-

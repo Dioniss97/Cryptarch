@@ -2,6 +2,7 @@
 
 Backward-compatible semantic layer over connector use cases.
 """
+
 from core.application import connector as connector_use_cases
 from core.domain.models import Integration
 from core.ports.connector_repository import IntegrationRepository
@@ -9,10 +10,11 @@ from core.ports.connector_repository import IntegrationRepository
 IntegrationHasActionsError = connector_use_cases.ConnectorHasActionsError
 
 
-def list_integrations(
-    tenant_id: str, repo: IntegrationRepository
-) -> list[Integration]:
-    return [Integration(**integration.__dict__) for integration in connector_use_cases.list_connectors(tenant_id, repo)]
+def list_integrations(tenant_id: str, repo: IntegrationRepository) -> list[Integration]:
+    return [
+        Integration(**integration.__dict__)
+        for integration in connector_use_cases.list_connectors(tenant_id, repo)
+    ]
 
 
 def get_integration(

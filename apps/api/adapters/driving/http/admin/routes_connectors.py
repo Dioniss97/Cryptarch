@@ -1,18 +1,21 @@
 """Admin HTTP routes for Connectors. Uses core.application.connector and SqlAlchemyConnectorRepository."""
+
 from typing import Annotated
 
+from core.application import connector as connector_use_cases
+from core.application.connector import ConnectorHasActionsError
+from dependencies import CurrentUser, get_db, require_admin
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from adapters.driven.persistence.connector_repository import SqlAlchemyConnectorRepository
+from adapters.driven.persistence.connector_repository import (
+    SqlAlchemyConnectorRepository,
+)
 from adapters.driving.schemas.connector import (
     ConnectorCreateBody,
     ConnectorUpdateBody,
     connector_to_response,
 )
-from core.application import connector as connector_use_cases
-from core.application.connector import ConnectorHasActionsError
-from dependencies import CurrentUser, get_db, require_admin
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -36,9 +39,7 @@ def get_connector(
 ):
     """Get connector by id; 404 if not in current tenant."""
     repo = SqlAlchemyConnectorRepository(db)
-    conn = connector_use_cases.get_connector(
-        connector_id, current_user.tenant_id, repo
-    )
+    conn = connector_use_cases.get_connector(connector_id, current_user.tenant_id, repo)
     if conn is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Connector not found"

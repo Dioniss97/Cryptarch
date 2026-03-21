@@ -1,12 +1,16 @@
 """FastAPI dependencies: get_db, auth, etc."""
+
 from typing import Annotated
 
-from fastapi import Depends, Header, HTTPException, status
+from config import JWT_ALGORITHM, JWT_SECRET
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from pydantic import BaseModel
+from shared_contract import ROLE_ADMIN
 
-from adapters.driven.persistence.db import get_db
-from config import JWT_ALGORITHM, JWT_SECRET
+# So Swagger UI shows "Authorize" and sends Bearer token on every request
+_http_bearer = HTTPBearer(auto_error=False)
 
 
 class CurrentUser(BaseModel):
@@ -16,15 +20,15 @@ class CurrentUser(BaseModel):
 
 
 def get_current_user(
-    authorization: str | None = Header(None, alias="Authorization"),
+    credentials: HTTPAuthorizationCredentials | None = Depends(_http_bearer),
 ) -> CurrentUser:
     """Extract and validate JWT from Authorization: Bearer <token>. Raises 401 if missing or invalid."""
-    if not authorization or not authorization.startswith("Bearer "):
+    if not credentials:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Missing or invalid authorization header",
         )
-    token = authorization[7:].strip()
+    token = credentials.credentials
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
         sub = payload.get("sub")
@@ -47,7 +51,7 @@ def require_admin(
     current_user: Annotated[CurrentUser, Depends(get_current_user)],
 ) -> CurrentUser:
     """Require role admin; raises 403 for non-admin."""
-    if current_user.role != "admin":
+    if current_user.role != ROLE_ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin role required",

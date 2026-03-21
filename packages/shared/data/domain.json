@@ -1,0 +1,9 @@
+{
+  "description": "Contrato de strings de dominio compartidos (lectura opcional desde Python; fuente de escritura en JS: packages/shared/src/constants).",
+  "roles": ["admin", "user"],
+  "document_status": ["queued", "processing", "indexed", "error"],
+  "saved_filter_target": ["user", "action", "document"],
+  "session_storage_key": "cryptarch_session",
+  "token_type_bearer": "bearer",
+  "user_theme": ["system", "light", "dark"]
+}

@@ -1,4 +1,5 @@
 """Password hashing and verification for local auth."""
+
 import bcrypt
 
 

@@ -4,6 +4,7 @@ then union of actions and documents from those groups' filters.
 Tenant-scoped; tag AND semantics within each saved filter.
 The core delegates to PermissionQueryPort; the implementation lives in driven adapters.
 """
+
 from core.ports.permission_query import PermissionQueryPort
 
 

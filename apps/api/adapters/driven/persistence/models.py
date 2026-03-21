@@ -3,6 +3,7 @@
 These are the concrete database models. Domain entities live in
 `core.domain.models` as pure Python types.
 """
+
 import uuid
 
 from sqlalchemy import Column, ForeignKey, String, UniqueConstraint
@@ -25,7 +26,9 @@ class TagOrm(Base):
         UUID(as_uuid=False), ForeignKey("tenants.id"), nullable=False, index=True
     )
     name = Column(String(255), nullable=False)
-    __table_args__ = (UniqueConstraint("tenant_id", "name", name="uq_tags_tenant_name"),)
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "name", name="uq_tags_tenant_name"),
+    )
 
 
 class UserOrm(Base):
@@ -37,7 +40,9 @@ class UserOrm(Base):
     email = Column(String(255), nullable=False)
     role = Column(String(32), nullable=False)  # admin | user
     password_hash = Column(String(255), nullable=True)  # bcrypt
-    __table_args__ = (UniqueConstraint("tenant_id", "email", name="uq_users_tenant_email"),)
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "email", name="uq_users_tenant_email"),
+    )
 
 
 class UserTagOrm(Base):
@@ -113,7 +118,9 @@ class ActionOrm(Base):
     tenant_id = Column(
         UUID(as_uuid=False), ForeignKey("tenants.id"), nullable=False, index=True
     )
-    connector_id = Column(UUID(as_uuid=False), ForeignKey("connectors.id"), nullable=False)
+    connector_id = Column(
+        UUID(as_uuid=False), ForeignKey("connectors.id"), nullable=False
+    )
     method = Column(String(16), nullable=False)
     path = Column(String(2048), nullable=False)
     request_config = Column(JSONB, nullable=True)
@@ -138,7 +145,9 @@ class DocumentOrm(Base):
 
 class DocumentTagOrm(Base):
     __tablename__ = "document_tags"
-    document_id = Column(UUID(as_uuid=False), ForeignKey("documents.id"), primary_key=True)
+    document_id = Column(
+        UUID(as_uuid=False), ForeignKey("documents.id"), primary_key=True
+    )
     tag_id = Column(UUID(as_uuid=False), ForeignKey("tags.id"), primary_key=True)
 
 
@@ -147,4 +156,3 @@ class DocumentTagOrm(Base):
 # backward compatibility while introducing clearer domain naming.
 IntegrationOrm = ConnectorOrm
 IntegrationActionOrm = ActionOrm
-

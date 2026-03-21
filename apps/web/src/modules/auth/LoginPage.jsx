@@ -23,7 +23,8 @@ export function LoginPage() {
     setIsSubmitting(true);
     try {
       const session = await login(form);
-      const fallback = session.user?.role === "admin" ? "/admin/users" : "/chat";
+      const fallback =
+        session.user?.role === "admin" ? "/admin/users" : "/chat";
       navigate(location.state?.from?.pathname || fallback, { replace: true });
     } catch (nextError) {
       setError(nextError);
@@ -43,7 +44,9 @@ export function LoginPage() {
             Tenant ID
             <input
               value={form.tenant_id}
-              onChange={(event) => setForm((prev) => ({ ...prev, tenant_id: event.target.value }))}
+              onChange={(event) =>
+                setForm((prev) => ({ ...prev, tenant_id: event.target.value }))
+              }
               required
             />
           </label>
@@ -52,7 +55,9 @@ export function LoginPage() {
             <input
               type="email"
               value={form.email}
-              onChange={(event) => setForm((prev) => ({ ...prev, email: event.target.value }))}
+              onChange={(event) =>
+                setForm((prev) => ({ ...prev, email: event.target.value }))
+              }
               required
             />
           </label>
@@ -61,7 +66,9 @@ export function LoginPage() {
             <input
               type="password"
               value={form.password}
-              onChange={(event) => setForm((prev) => ({ ...prev, password: event.target.value }))}
+              onChange={(event) =>
+                setForm((prev) => ({ ...prev, password: event.target.value }))
+              }
               required
             />
           </label>

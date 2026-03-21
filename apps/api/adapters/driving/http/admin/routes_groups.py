@@ -1,4 +1,7 @@
 """Admin Groups CRUD. Tenant-scoped; requires admin role."""
+
+from core.application import group as group_use_cases
+from dependencies import CurrentUser, get_db, require_admin
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -11,8 +14,6 @@ from adapters.driving.schemas.group import (
     GroupUpdateBody,
     group_to_response,
 )
-from core.application import group as group_use_cases
-from dependencies import CurrentUser, get_db, require_admin
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -29,10 +30,7 @@ def list_groups(
     """List groups of the current tenant."""
     repo = _repo(db)
     groups = group_use_cases.list_groups(current_user.tenant_id, repo)
-    return [
-        group_to_response(g, *repo.get_group_filter_ids(g.id))
-        for g in groups
-    ]
+    return [group_to_response(g, *repo.get_group_filter_ids(g.id)) for g in groups]
 
 
 @router.get("/groups/{group_id}")
@@ -87,9 +85,21 @@ def update_group(
 ):
     """Update group name and/or filter lists; filters must exist and belong to tenant."""
     repo = _repo(db)
-    uids = [str(x) for x in body.user_filter_ids] if body.user_filter_ids is not None else None
-    aids = [str(x) for x in body.action_filter_ids] if body.action_filter_ids is not None else None
-    dids = [str(x) for x in body.document_filter_ids] if body.document_filter_ids is not None else None
+    uids = (
+        [str(x) for x in body.user_filter_ids]
+        if body.user_filter_ids is not None
+        else None
+    )
+    aids = (
+        [str(x) for x in body.action_filter_ids]
+        if body.action_filter_ids is not None
+        else None
+    )
+    dids = (
+        [str(x) for x in body.document_filter_ids]
+        if body.document_filter_ids is not None
+        else None
+    )
     try:
         g = group_use_cases.update_group(
             group_id,

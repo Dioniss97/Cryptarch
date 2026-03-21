@@ -2,6 +2,7 @@
 
 Backward-compatible semantic layer over action use cases.
 """
+
 from core.application import action as action_use_cases
 from core.domain.models import IntegrationAction
 from core.ports.action_repository import IntegrationActionRepository

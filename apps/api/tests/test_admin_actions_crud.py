@@ -3,19 +3,19 @@ Admin CRUD actions: list/get/create/update/delete, tenant-scoped.
 - All operations use tenant_id from JWT; connector_id and tag_ids must belong to tenant (404 otherwise).
 - Response includes tag_ids; optional filter ?connector_id=uuid on list.
 """
+
 import uuid
+from datetime import UTC, datetime, timedelta
 
 import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
-
-from config import JWT_ALGORITHM, JWT_SECRET
-from domain.models import Action, ActionTag, Connector, Tag, Tenant, User
-from main import app
-from dependencies import get_db
-from jose import jwt
-from datetime import datetime, timedelta, timezone
 from auth.service import hash_password
+from config import JWT_ALGORITHM, JWT_SECRET
+from dependencies import get_db
+from domain.models import Action, ActionTag, Connector, Tag, Tenant, User
+from fastapi.testclient import TestClient
+from jose import jwt
+from main import app
+from sqlalchemy.orm import Session
 
 
 def _uuid_eq(a: str, b: str) -> bool:
@@ -34,8 +34,8 @@ def _make_token(tenant_id: str, user_id: str, role: str) -> str:
         "sub": user_id,
         "tenant_id": tenant_id,
         "role": role,
-        "exp": datetime.now(timezone.utc) + timedelta(hours=1),
-        "iat": datetime.now(timezone.utc),
+        "exp": datetime.now(UTC) + timedelta(hours=1),
+        "iat": datetime.now(UTC),
     }
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
@@ -230,7 +230,9 @@ def test_list_actions_non_admin_403(client: TestClient, tenant, db_session: Sess
     )
     db_session.add(u)
     db_session.flush()
-    r = client.get("/admin/actions", headers=_auth_headers(tenant.id, u.id, role="user"))
+    r = client.get(
+        "/admin/actions", headers=_auth_headers(tenant.id, u.id, role="user")
+    )
     assert r.status_code == 403
 
 
@@ -370,7 +372,10 @@ def test_create_action_with_tag_ids_201(
             "method": "GET",
             "path": "/items",
             "name": "List",
-            "tag_ids": [str(uuid.UUID(tenant_tags[0].id)), str(uuid.UUID(tenant_tags[1].id))],
+            "tag_ids": [
+                str(uuid.UUID(tenant_tags[0].id)),
+                str(uuid.UUID(tenant_tags[1].id)),
+            ],
         },
     )
     assert r.status_code == 201
@@ -380,9 +385,7 @@ def test_create_action_with_tag_ids_201(
     assert set(data["tag_ids"]) == expected
 
 
-def test_create_action_connector_not_found_404(
-    client: TestClient, tenant, admin_user
-):
+def test_create_action_connector_not_found_404(client: TestClient, tenant, admin_user):
     """Non-existent connector_id (valid UUID format) -> 404."""
     r = client.post(
         "/admin/actions",
@@ -421,7 +424,13 @@ def test_create_action_connector_other_tenant_404(
 
 
 def test_create_action_tag_other_tenant_404(
-    client: TestClient, tenant, other_tenant, admin_user, connector, tenant_tags, db_session: Session
+    client: TestClient,
+    tenant,
+    other_tenant,
+    admin_user,
+    connector,
+    tenant_tags,
+    db_session: Session,
 ):
     other_tag = Tag(id=_id(), tenant_id=other_tenant.id, name="other-tag")
     db_session.add(other_tag)
@@ -434,7 +443,10 @@ def test_create_action_tag_other_tenant_404(
             "connector_id": str(uuid.UUID(connector.id)),
             "method": "GET",
             "path": "/items",
-            "tag_ids": [str(uuid.UUID(tenant_tags[0].id)), str(uuid.UUID(other_tag.id))],
+            "tag_ids": [
+                str(uuid.UUID(tenant_tags[0].id)),
+                str(uuid.UUID(other_tag.id)),
+            ],
         },
     )
     assert r.status_code == 404
@@ -486,7 +498,12 @@ def test_update_action_tag_ids_200(
     r = client.patch(
         f"/admin/actions/{action.id}",
         headers=_auth_headers(tenant.id, admin_user.id),
-        json={"tag_ids": [str(uuid.UUID(tenant_tags[0].id)), str(uuid.UUID(tenant_tags[1].id))]},
+        json={
+            "tag_ids": [
+                str(uuid.UUID(tenant_tags[0].id)),
+                str(uuid.UUID(tenant_tags[1].id)),
+            ]
+        },
     )
     assert r.status_code == 200
     data = r.json()
@@ -547,7 +564,9 @@ def test_delete_action_204(
     )
     assert r.status_code == 204
 
-    r2 = client.get(f"/admin/actions/{aid}", headers=_auth_headers(tenant.id, admin_user.id))
+    r2 = client.get(
+        f"/admin/actions/{aid}", headers=_auth_headers(tenant.id, admin_user.id)
+    )
     assert r2.status_code == 404
 
 

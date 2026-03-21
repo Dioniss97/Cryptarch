@@ -1,19 +1,22 @@
 """Admin HTTP routes for Saved Filters. Uses core.application.saved_filter and repositories."""
+
 from typing import Annotated
 
+from core.application import saved_filter as saved_filter_use_cases
+from core.application.saved_filter import FilterNotFoundError, TagNotFoundError
+from dependencies import CurrentUser, get_db, require_admin
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from adapters.driven.persistence.saved_filter_repository import SavedFilterRepositoryImpl
+from adapters.driven.persistence.saved_filter_repository import (
+    SavedFilterRepositoryImpl,
+)
 from adapters.driven.persistence.tag_repository import SqlAlchemyTagRepository
 from adapters.driving.schemas.saved_filter import (
     FilterCreateBody,
     FilterUpdateBody,
     filter_to_response,
 )
-from core.application import saved_filter as saved_filter_use_cases
-from core.application.saved_filter import FilterNotFoundError, TagNotFoundError
-from dependencies import CurrentUser, get_db, require_admin
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -32,8 +35,7 @@ def list_filters(
     repo = SavedFilterRepositoryImpl(db)
     filters = saved_filter_use_cases.list_filters(current_user.tenant_id, repo)
     return [
-        filter_to_response(f, tag_ids=repo.get_filter_tag_ids(f.id))
-        for f in filters
+        filter_to_response(f, tag_ids=repo.get_filter_tag_ids(f.id)) for f in filters
     ]
 
 
@@ -45,9 +47,7 @@ def get_filter(
 ):
     """Get saved filter by id; 404 if not in current tenant. Response includes tag_ids."""
     repo = SavedFilterRepositoryImpl(db)
-    f = saved_filter_use_cases.get_filter(
-        filter_id, current_user.tenant_id, repo
-    )
+    f = saved_filter_use_cases.get_filter(filter_id, current_user.tenant_id, repo)
     if f is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -71,7 +71,7 @@ def create_filter(
         f = saved_filter_use_cases.create_filter(
             current_user.tenant_id,
             body.name,
-            body.target_type,
+            body.target_type.value,
             tag_ids_str,
             repo,
             tag_repo,
@@ -132,9 +132,7 @@ def delete_filter(
     """Delete saved filter; 404 if not in current tenant."""
     repo = SavedFilterRepositoryImpl(db)
     try:
-        saved_filter_use_cases.delete_filter(
-            filter_id, current_user.tenant_id, repo
-        )
+        saved_filter_use_cases.delete_filter(filter_id, current_user.tenant_id, repo)
         db.commit()
     except FilterNotFoundError:
         db.rollback()

@@ -1,13 +1,15 @@
 """Request/response schemas for Saved Filter (admin)."""
+
 import uuid
-from typing import Literal, Protocol
+from typing import Protocol
 
 from pydantic import BaseModel
+from shared_contract import SavedFilterTarget
 
 
 class FilterCreateBody(BaseModel):
     name: str
-    target_type: Literal["user", "action", "document"]
+    target_type: SavedFilterTarget
     tag_ids: list[uuid.UUID] = []
 
 
@@ -47,6 +49,7 @@ def _canonical_str(value: str | None) -> str:
 
 class SavedFilterLike(Protocol):
     """Minimal interface for filter_to_response (core.domain.models.SavedFilter)."""
+
     id: str
     tenant_id: str
     target_type: str

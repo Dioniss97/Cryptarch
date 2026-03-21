@@ -1,6 +1,7 @@
 """Document use cases. Orchestrate DocumentRepository and TagRepository (for tag_ids validation).
 No Session or DB in this module; ports are injected.
 """
+
 from core.domain.models import Document
 from core.ports.document_repository import DocumentRepository
 from core.ports.tag_repository import TagRepository

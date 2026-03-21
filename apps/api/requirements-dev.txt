@@ -1,0 +1,3 @@
+# Herramientas de desarrollo (formato/lint). No instalar en producción.
+# Uso: pip install -r requirements-dev.txt
+ruff==0.8.4

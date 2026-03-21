@@ -1,15 +1,14 @@
 """
 Implements SavedFilterRepository port. Uses Session and ORM models (SavedFilterOrm, SavedFilterTagOrm).
 """
-from typing import List
 
+from core.domain.models import SavedFilter
+from core.ports.saved_filter_repository import SavedFilterRepository
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from adapters.driven.persistence.models import SavedFilterOrm, SavedFilterTagOrm
 from adapters.driven.persistence.uuid_utils import normalize_uuid, parse_uuid, to_hex
-from core.domain.models import SavedFilter
-from core.ports.saved_filter_repository import SavedFilterRepository
 
 
 def _orm_to_domain(orm: SavedFilterOrm) -> SavedFilter:
@@ -25,7 +24,7 @@ class SavedFilterRepositoryImpl(SavedFilterRepository):
     def __init__(self, session: Session) -> None:
         self._session = session
 
-    def list_by_tenant(self, tenant_id: str) -> List[SavedFilter]:
+    def list_by_tenant(self, tenant_id: str) -> list[SavedFilter]:
         tid = parse_uuid(tenant_id)
         if tid is None:
             return []
@@ -55,7 +54,7 @@ class SavedFilterRepositoryImpl(SavedFilterRepository):
             return None
         return _orm_to_domain(orm)
 
-    def get_filter_tag_ids(self, filter_id: str) -> List[str]:
+    def get_filter_tag_ids(self, filter_id: str) -> list[str]:
         """Return tag_ids for the filter as canonical UUID strings. filter_id can be hex or canonical."""
         fid = parse_uuid(filter_id)
         if fid is None:
@@ -77,7 +76,7 @@ class SavedFilterRepositoryImpl(SavedFilterRepository):
             result.append(str(u) if u else str(tag_id))
         return result
 
-    def add(self, saved_filter: SavedFilter, tag_ids: List[str]) -> SavedFilter:
+    def add(self, saved_filter: SavedFilter, tag_ids: list[str]) -> SavedFilter:
         orm = SavedFilterOrm(
             tenant_id=saved_filter.tenant_id,
             target_type=saved_filter.target_type,
@@ -97,9 +96,7 @@ class SavedFilterRepositoryImpl(SavedFilterRepository):
         self._session.refresh(orm)
         return _orm_to_domain(orm)
 
-    def save(
-        self, saved_filter: SavedFilter, tag_ids: List[str] | None
-    ) -> SavedFilter:
+    def save(self, saved_filter: SavedFilter, tag_ids: list[str] | None) -> SavedFilter:
         fid = parse_uuid(saved_filter.id)
         if fid is None:
             return saved_filter

@@ -6,6 +6,7 @@ and belong to the tenant. This validation is performed in the **driven** layer (
 add() and save() raise FilterNotFoundInTenantError if any filter id is missing or not in tenant.
 The driving layer (routes) maps that exception to 404.
 """
+
 from __future__ import annotations
 
 from core.domain.models import Group

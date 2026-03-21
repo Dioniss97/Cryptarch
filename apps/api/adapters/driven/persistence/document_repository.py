@@ -1,11 +1,12 @@
 """Implements DocumentRepository port. Uses Session and ORM models (DocumentOrm, DocumentTagOrm)."""
+
+from core.domain.models import Document
+from core.ports.document_repository import DocumentRepository
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from adapters.driven.persistence.models import DocumentOrm, DocumentTagOrm
 from adapters.driven.persistence.uuid_utils import normalize_uuid, parse_uuid, to_hex
-from core.domain.models import Document
-from core.ports.document_repository import DocumentRepository
 
 
 def _orm_to_domain(orm: DocumentOrm) -> Document:

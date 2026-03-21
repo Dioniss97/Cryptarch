@@ -38,7 +38,10 @@ export function LoadingBlock({ label = "Cargando..." }) {
   return <div className="loading-block">{label}</div>;
 }
 
-export function EmptyState({ title = "Sin datos", description = "No hay elementos para mostrar." }) {
+export function EmptyState({
+  title = "Sin datos",
+  description = "No hay elementos para mostrar.",
+}) {
   return (
     <div className="empty-state">
       <h3>{title}</h3>

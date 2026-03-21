@@ -1,11 +1,12 @@
 """ConnectorRepository implementation using Session and ORM Connector/Action models."""
+
+from core.domain.models import Connector
+from core.ports.connector_repository import ConnectorRepository
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from adapters.driven.persistence.models import ActionOrm, ConnectorOrm
 from adapters.driven.persistence.uuid_utils import normalize_uuid, parse_uuid
-from core.domain.models import Connector
-from core.ports.connector_repository import ConnectorRepository
 
 
 def _orm_to_domain(orm: ConnectorOrm) -> Connector:

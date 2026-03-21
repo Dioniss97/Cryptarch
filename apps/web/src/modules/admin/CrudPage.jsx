@@ -1,6 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "../../shared/apiClient";
-import { ApiErrorBanner, ConfirmDelete, EmptyState, LoadingBlock, StatusBadge } from "../../shared/ui";
+import {
+  ApiErrorBanner,
+  ConfirmDelete,
+  EmptyState,
+  LoadingBlock,
+  StatusBadge,
+} from "../../shared/ui";
 import { TagPicker } from "./TagPicker";
 
 function normalizeList(payload) {
@@ -80,12 +86,21 @@ export function CrudPage({ config }) {
     setForm(config.toForm(item));
   }
 
+  const onCreateTag = useCallback(async (name) => {
+    const payload = await api.post("/admin/tags", { name });
+    const created = payload || { id: name, name };
+    setTags((prev) => [created, ...prev]);
+    return created;
+  }, []);
+
   async function onSave(event) {
     event.preventDefault();
     setSaving(true);
     setError(null);
     try {
-      const payload = config.beforeSave(compactPayload(config.fields, form), { isEditing });
+      const payload = config.beforeSave(compactPayload(config.fields, form), {
+        isEditing,
+      });
       if (isEditing) await api.patch(`${endpoint}/${editingId}`, payload);
       else await api.post(endpoint, payload);
       startCreate();
@@ -133,9 +148,15 @@ export function CrudPage({ config }) {
                   <TagPicker
                     options={tags}
                     value={Array.isArray(value) ? value : []}
-                    onChange={(next) => setForm((prev) => ({ ...prev, [field.name]: next }))}
+                    onChange={(next) =>
+                      setForm((prev) => ({ ...prev, [field.name]: next }))
+                    }
+                    onCreateTag={onCreateTag}
                   />
-                  <small>Semántica AND: deben cumplirse todos los tags.</small>
+                  <small>
+                    Semántica AND: deben cumplirse todos los tags. Puedes crear
+                    tags nuevas inline.
+                  </small>
                 </div>
               );
             }
@@ -150,7 +171,9 @@ export function CrudPage({ config }) {
                     multiple
                     value={selected}
                     onChange={(event) => {
-                      const next = Array.from(event.target.selectedOptions).map((opt) => opt.value);
+                      const next = Array.from(event.target.selectedOptions).map(
+                        (opt) => opt.value,
+                      );
                       setForm((prev) => ({ ...prev, [field.name]: next }));
                     }}
                   >
@@ -170,7 +193,12 @@ export function CrudPage({ config }) {
                   {field.label}
                   <select
                     value={value ?? ""}
-                    onChange={(event) => setForm((prev) => ({ ...prev, [field.name]: event.target.value }))}
+                    onChange={(event) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        [field.name]: event.target.value,
+                      }))
+                    }
                   >
                     <option value="">--</option>
                     {field.options.map((option) => (
@@ -193,7 +221,10 @@ export function CrudPage({ config }) {
                     onChange={(event) =>
                       setForm((prev) => ({
                         ...prev,
-                        [field.name]: event.target.value === "" ? "" : Number(event.target.value),
+                        [field.name]:
+                          event.target.value === ""
+                            ? ""
+                            : Number(event.target.value),
                       }))
                     }
                   />
@@ -208,7 +239,12 @@ export function CrudPage({ config }) {
                   <textarea
                     rows={6}
                     value={value ?? ""}
-                    onChange={(event) => setForm((prev) => ({ ...prev, [field.name]: event.target.value }))}
+                    onChange={(event) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        [field.name]: event.target.value,
+                      }))
+                    }
                   />
                 </label>
               );
@@ -221,7 +257,12 @@ export function CrudPage({ config }) {
                   <textarea
                     rows={3}
                     value={value ?? ""}
-                    onChange={(event) => setForm((prev) => ({ ...prev, [field.name]: event.target.value }))}
+                    onChange={(event) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        [field.name]: event.target.value,
+                      }))
+                    }
                   />
                 </label>
               );
@@ -233,16 +274,27 @@ export function CrudPage({ config }) {
                 <input
                   type={field.type || "text"}
                   value={value ?? ""}
-                  onChange={(event) => setForm((prev) => ({ ...prev, [field.name]: event.target.value }))}
+                  onChange={(event) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      [field.name]: event.target.value,
+                    }))
+                  }
                 />
               </label>
             );
           })}
           <div className="row">
             <button className="primary" type="submit" disabled={saving}>
-              {saving ? "Guardando..." : isEditing ? "Guardar cambios" : "Crear"}
+              {saving
+                ? "Guardando..."
+                : isEditing
+                  ? "Guardar cambios"
+                  : "Crear"}
             </button>
-            {isEditing ? <button onClick={startCreate}>Cancelar edición</button> : null}
+            {isEditing ? (
+              <button onClick={startCreate}>Cancelar edición</button>
+            ) : null}
           </div>
         </form>
       </section>
@@ -251,7 +303,10 @@ export function CrudPage({ config }) {
         <h3>Listado</h3>
         {loading ? <LoadingBlock /> : null}
         {!loading && items.length === 0 ? (
-          <EmptyState title="Sin registros" description="No hay elementos todavía." />
+          <EmptyState
+            title="Sin registros"
+            description="No hay elementos todavía."
+          />
         ) : null}
         {!loading && items.length > 0 ? (
           <table>

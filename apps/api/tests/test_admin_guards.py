@@ -2,18 +2,18 @@
 Role guards: admin-only routes return 200 for admin, 403 for user, 401 when unauthenticated.
 Requires PostgreSQL (same as auth/domain tests).
 """
+
 import uuid
+from datetime import UTC, datetime, timedelta
 
 import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
-
 from config import JWT_ALGORITHM, JWT_SECRET
-from domain.models import Tenant, User
-from main import app
 from dependencies import get_db
+from domain.models import Tenant
+from fastapi.testclient import TestClient
 from jose import jwt
-from datetime import datetime, timedelta, timezone
+from main import app
+from sqlalchemy.orm import Session
 
 
 def _id():
@@ -25,8 +25,8 @@ def _make_token(tenant_id: str, user_id: str, role: str) -> str:
         "sub": user_id,
         "tenant_id": tenant_id,
         "role": role,
-        "exp": datetime.now(timezone.utc) + timedelta(hours=1),
-        "iat": datetime.now(timezone.utc),
+        "exp": datetime.now(UTC) + timedelta(hours=1),
+        "iat": datetime.now(UTC),
     }
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 

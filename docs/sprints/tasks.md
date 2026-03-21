@@ -4,6 +4,18 @@
 > Para entender como ejecutar el trabajo, ve a `../architecture/orchestrator-flow.md` y `../architecture/git-workflow.md`.
 > Para una vista general del proyecto, empieza por `../../README.md`.
 
+## Mapa rapido de sprints
+
+| Sprint | Estado en este doc | Detalle |
+|---|---|---|
+| Sprint 02 | Definido | `Auth y Admin API` con tareas `task-01` a `task-08`. |
+| Sprint 02.5 | Definido | Backend puente para frontend dinamico (`task-08a` a `task-08g`). |
+| Sprint 03 | Definido | Admin Web MVP (`task-09` a `task-13`). |
+| Sprint 03.1 | Definido | UX Admin + Chat Workspace (`task-13a` a `task-13h`). |
+| Sprint 04 | Preliminar | Ingestion y vectorizacion (`task-14` a `task-18`). |
+| Sprint 05 | Preliminar | Chat, RAG y acciones (`task-19` a `task-22`). |
+| Sprint 06 | Referencia | Hardening (desglose al abrir). |
+
 **La fuente de verdad es Engram.** El estado de sprints y tasks, los criterios de aceptación y qué toca hacer viven en memorias `sprints/sprint-XX` y `tasks/task-XX`. Consultar siempre Engram primero (`mem_search` "Status: pending", "sprints sprint", etc.).
 
 Este fichero sirve de **referencia** y de **semilla**: si Engram no tiene aún un sprint o sus tasks, se usa este doc (y el `sprint-XX.md` correspondiente) para crear o completar esas memorias. Una vez poblado, el agente trabaja desde Engram.

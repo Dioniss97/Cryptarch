@@ -1,10 +1,11 @@
 """User repository implementation. Implements core.ports.user_repository.UserRepository."""
+
+from core.domain.models import User
+from core.ports.user_repository import UserRepository
 from sqlalchemy.orm import Session
 
 from adapters.driven.persistence.models import UserOrm
 from adapters.driven.persistence.uuid_utils import normalize_uuid, parse_uuid
-from core.domain.models import User
-from core.ports.user_repository import UserRepository
 
 
 def _orm_to_domain(orm: UserOrm) -> User:

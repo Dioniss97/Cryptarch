@@ -2,6 +2,7 @@
 Fixtures for API tests. Domain tests require PostgreSQL (e.g. docker compose up).
 Set DATABASE_URL or DATABASE_URL_TEST to run domain tests.
 """
+
 import os
 import subprocess
 import sys
@@ -15,7 +16,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
     from config import DATABASE_URL, DATABASE_URL_TEST
-    from domain.models import Base
 except ImportError:
     DATABASE_URL = DATABASE_URL_TEST = None
 
@@ -24,7 +24,9 @@ _Session = None
 
 
 def _get_test_url():
-    url = os.environ.get("DATABASE_URL_TEST", os.environ.get("DATABASE_URL", "")).strip()
+    url = os.environ.get(
+        "DATABASE_URL_TEST", os.environ.get("DATABASE_URL", "")
+    ).strip()
     if url:
         return url
     # Fallback: use app DB so tests run without DATABASE_URL_TEST or separate appdb_test

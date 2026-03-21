@@ -1,15 +1,14 @@
 """
 Implements ActionRepository port. Uses Session and ORM models (ActionOrm, ActionTagOrm).
 """
-from typing import List
 
+from core.domain.models import Action
+from core.ports.action_repository import ActionRepository
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from adapters.driven.persistence.models import ActionOrm, ActionTagOrm
 from adapters.driven.persistence.uuid_utils import normalize_uuid, parse_uuid, to_hex
-from core.domain.models import Action
-from core.ports.action_repository import ActionRepository
 
 
 def _orm_to_domain(orm: ActionOrm) -> Action:
@@ -30,7 +29,7 @@ class ActionRepositoryImpl(ActionRepository):
 
     def list_by_tenant(
         self, tenant_id: str, connector_id: str | None = None
-    ) -> List[Action]:
+    ) -> list[Action]:
         tid = parse_uuid(tenant_id)
         if tid is None:
             return []
