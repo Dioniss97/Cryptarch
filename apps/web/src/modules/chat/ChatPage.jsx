@@ -24,19 +24,38 @@ function FieldRenderer({ field, value, onChange }) {
   const options = field.options || [];
   switch (field.type) {
     case "textarea":
-      return <textarea rows={4} value={value} onChange={(e) => onChange(e.target.value)} />;
+      return (
+        <textarea
+          rows={4}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      );
     case "number":
-      return <input type="number" value={value} onChange={(e) => onChange(e.target.value)} />;
+      return (
+        <input
+          type="number"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      );
     case "boolean":
       return (
-        <input type="checkbox" checked={Boolean(value)} onChange={(e) => onChange(e.target.checked)} />
+        <input
+          type="checkbox"
+          checked={Boolean(value)}
+          onChange={(e) => onChange(e.target.checked)}
+        />
       );
     case "select":
       return (
         <select value={value} onChange={(e) => onChange(e.target.value)}>
           <option value="">--</option>
           {options.map((opt) => (
-            <option key={String(opt.value ?? opt)} value={String(opt.value ?? opt)}>
+            <option
+              key={String(opt.value ?? opt)}
+              value={String(opt.value ?? opt)}
+            >
               {opt.label ?? opt.value ?? opt}
             </option>
           ))}
@@ -62,9 +81,21 @@ function FieldRenderer({ field, value, onChange }) {
         </div>
       );
     case "date":
-      return <input type="date" value={value} onChange={(e) => onChange(e.target.value)} />;
+      return (
+        <input
+          type="date"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      );
     default:
-      return <input type="text" value={value} onChange={(e) => onChange(e.target.value)} />;
+      return (
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+        />
+      );
   }
 }
 
@@ -79,7 +110,10 @@ export function ChatPage() {
   const { user, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
 
-  const fields = useMemo(() => normalizeFields(schema?.input_schema_json), [schema]);
+  const fields = useMemo(
+    () => normalizeFields(schema?.input_schema_json),
+    [schema],
+  );
 
   async function loadSchema(event) {
     event.preventDefault();
@@ -110,9 +144,14 @@ export function ChatPage() {
     try {
       const payloadObject = {};
       for (const field of fields) {
-        payloadObject[field.name] = castValueByType(field.type, payload[field.name]);
+        payloadObject[field.name] = castValueByType(
+          field.type,
+          payload[field.name],
+        );
       }
-      const execution = await api.post(`/actions/${actionId}/execute`, { payload: payloadObject });
+      const execution = await api.post(`/actions/${actionId}/execute`, {
+        payload: payloadObject,
+      });
       setResult(execution);
     } catch (nextError) {
       setError(nextError);
@@ -133,7 +172,9 @@ export function ChatPage() {
           </div>
           <div className="row">
             {isAdmin ? (
-              <button onClick={() => navigate("/admin/users")}>Ir a admin</button>
+              <button onClick={() => navigate("/admin/users")}>
+                Ir a admin
+              </button>
             ) : null}
             <button
               onClick={async () => {
@@ -156,7 +197,11 @@ export function ChatPage() {
               required
             />
           </label>
-          <button className="primary" type="submit" disabled={loadingSchema || !actionId}>
+          <button
+            className="primary"
+            type="submit"
+            disabled={loadingSchema || !actionId}
+          >
             {loadingSchema ? "Cargando schema..." : "Cargar schema"}
           </button>
         </form>
@@ -174,7 +219,9 @@ export function ChatPage() {
                 <FieldRenderer
                   field={field}
                   value={payload[field.name] ?? ""}
-                  onChange={(next) => setPayload((prev) => ({ ...prev, [field.name]: next }))}
+                  onChange={(next) =>
+                    setPayload((prev) => ({ ...prev, [field.name]: next }))
+                  }
                 />
               </label>
             ))}

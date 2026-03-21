@@ -1,3 +1,4 @@
+import { SESSION_STORAGE_KEY, SHARED_PACKAGE_VERSION } from "@cryptarch/shared";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { RouterProvider, createMemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -21,6 +22,24 @@ function mockJsonResponse(status, payload) {
   });
 }
 
+function mockByPath(map) {
+  fetch.mockImplementation((url, options = {}) => {
+    const path = String(url).replace("http://localhost:8000", "");
+    const method = String(options.method || "GET").toUpperCase();
+    const key = `${method} ${path}`;
+    const payload = map[key];
+    if (payload === undefined)
+      return mockJsonResponse(500, { detail: `Mock no definido: ${key}` });
+    return mockJsonResponse(200, payload);
+  });
+}
+
+describe("@cryptarch/shared", () => {
+  it("resuelve el paquete monorepo", () => {
+    expect(SHARED_PACKAGE_VERSION).toBe("0.1.0");
+  });
+});
+
 describe("smoke routes", () => {
   beforeEach(() => {
     localStorage.clear();
@@ -30,38 +49,136 @@ describe("smoke routes", () => {
   it("redirige admin sin sesión a login y permite login hacia admin", async () => {
     fetch
       .mockImplementationOnce(() =>
-        mockJsonResponse(200, { access_token: "token-demo", token_type: "bearer" }),
+        mockJsonResponse(200, {
+          access_token: "token-demo",
+          token_type: "bearer",
+        }),
       )
       .mockImplementationOnce(() =>
-        mockJsonResponse(200, { sub: "admin@test", tenant_id: "t1", role: "admin" }),
+        mockJsonResponse(200, {
+          sub: "admin@test",
+          tenant_id: "t1",
+          role: "admin",
+        }),
       )
+      .mockImplementationOnce(() => mockJsonResponse(200, []))
+      .mockImplementationOnce(() => mockJsonResponse(200, []))
       .mockImplementationOnce(() => mockJsonResponse(200, []));
 
     renderWithRoute("/admin/users");
-    expect(await screen.findByRole("heading", { name: "Acceso" })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Acceso" }),
+    ).toBeInTheDocument();
 
-    fireEvent.change(screen.getByLabelText("Tenant ID"), { target: { value: "t1" } });
-    fireEvent.change(screen.getByLabelText("Email"), { target: { value: "admin@test" } });
-    fireEvent.change(screen.getByLabelText("Password"), { target: { value: "secret" } });
+    fireEvent.change(screen.getByLabelText("Tenant ID"), {
+      target: { value: "t1" },
+    });
+    fireEvent.change(screen.getByLabelText("Email"), {
+      target: { value: "admin@test" },
+    });
+    fireEvent.change(screen.getByLabelText("Password"), {
+      target: { value: "secret" },
+    });
     fireEvent.click(screen.getByRole("button", { name: "Entrar" }));
 
     await waitFor(() => {
-      expect(screen.getByRole("heading", { name: "Users" })).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: "Usuarios" }),
+      ).toBeInTheDocument();
     });
   });
 
   it("renderiza chat para usuario autenticado", async () => {
     localStorage.setItem(
-      "cryptarch_session",
+      SESSION_STORAGE_KEY,
       JSON.stringify({
         token: "token-user",
         user: { sub: "user@test", tenant_id: "t1", role: "user" },
       }),
     );
-    fetch.mockImplementation(() => mockJsonResponse(200, { theme: "system", metadata: {} }));
+    fetch.mockImplementation(() =>
+      mockJsonResponse(200, { theme: "system", metadata: {} }),
+    );
 
     renderWithRoute("/chat");
-    expect(await screen.findByRole("heading", { name: "Chat MVP" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Preferencias" })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: "Chat MVP" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Preferencias" }),
+    ).toBeInTheDocument();
+  });
+
+  it("renderiza workspace de conectores sin pedir connector_id manual", async () => {
+    localStorage.setItem(
+      SESSION_STORAGE_KEY,
+      JSON.stringify({
+        token: "token-admin",
+        user: { sub: "admin@test", tenant_id: "t1", role: "admin" },
+      }),
+    );
+    mockByPath({
+      "GET /admin/connectors": [
+        { id: "c1", base_url: "https://crm.api", auth_config: {} },
+      ],
+      "GET /admin/actions": [
+        {
+          id: "a1",
+          connector_id: "c1",
+          name: "Buscar cliente",
+          method: "GET",
+          path: "/v1/customers",
+        },
+      ],
+      "GET /admin/tags": [],
+    });
+
+    renderWithRoute("/admin/connectors");
+    expect(
+      await screen.findByRole("heading", { name: "Conector y acciones" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText("Connector id")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Crear acción" }),
+    ).toBeInTheDocument();
+  });
+
+  it("permite crear tags inline desde users workspace", async () => {
+    localStorage.setItem(
+      SESSION_STORAGE_KEY,
+      JSON.stringify({
+        token: "token-admin",
+        user: { sub: "admin@test", tenant_id: "t1", role: "admin" },
+      }),
+    );
+    fetch.mockImplementation((url, options = {}) => {
+      const path = String(url).replace("http://localhost:8000", "");
+      const method = String(options.method || "GET").toUpperCase();
+      if (method === "GET" && path === "/admin/users")
+        return mockJsonResponse(200, []);
+      if (method === "GET" && path === "/admin/tags")
+        return mockJsonResponse(200, []);
+      if (method === "GET" && path === "/admin/filters")
+        return mockJsonResponse(200, []);
+      if (method === "POST" && path === "/admin/tags")
+        return mockJsonResponse(200, { id: "t-new", name: "vip" });
+      return mockJsonResponse(500, { detail: `${method} ${path}` });
+    });
+
+    renderWithRoute("/admin/users");
+    expect(
+      await screen.findByRole("heading", { name: "Usuarios" }),
+    ).toBeInTheDocument();
+    fireEvent.change(screen.getAllByPlaceholderText("Nueva tag")[0], {
+      target: { value: "vip" },
+    });
+    fireEvent.click(screen.getAllByRole("button", { name: "Crear tag" })[0]);
+
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledWith(
+        "http://localhost:8000/admin/tags",
+        expect.objectContaining({ method: "POST" }),
+      );
+    });
   });
 });

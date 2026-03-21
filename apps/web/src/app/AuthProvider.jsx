@@ -1,6 +1,17 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { api, apiRequest, setUnauthorizedHandler } from "../shared/apiClient";
-import { clearSession, readSession, writeSession } from "../shared/sessionStore";
+import {
+  clearSession,
+  readSession,
+  writeSession,
+} from "../shared/sessionStore";
 
 const AuthContext = createContext(null);
 
@@ -52,7 +63,10 @@ export function AuthProvider({ children }) {
     }
 
     if (!profile?.sub || !profile?.tenant_id || !profile?.role) {
-      throw { status: 500, message: "No se pudo resolver el perfil de sesión." };
+      throw {
+        status: 500,
+        message: "No se pudo resolver el perfil de sesión.",
+      };
     }
 
     const nextSession = { token, user: profile };
@@ -72,7 +86,7 @@ export function AuthProvider({ children }) {
     }
   }
 
-  async function refreshMe() {
+  const refreshMe = useCallback(async () => {
     if (!session?.token) return null;
     setIsBootstrapping(true);
     try {
@@ -84,7 +98,7 @@ export function AuthProvider({ children }) {
     } finally {
       setIsBootstrapping(false);
     }
-  }
+  }, [session]);
 
   const value = useMemo(
     () => ({
@@ -97,7 +111,7 @@ export function AuthProvider({ children }) {
       logout,
       refreshMe,
     }),
-    [session, isBootstrapping],
+    [session, isBootstrapping, refreshMe],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

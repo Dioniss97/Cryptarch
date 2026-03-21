@@ -69,7 +69,9 @@ export function PreferencesPanel() {
             Theme
             <select
               value={form.theme}
-              onChange={(event) => setForm((prev) => ({ ...prev, theme: event.target.value }))}
+              onChange={(event) =>
+                setForm((prev) => ({ ...prev, theme: event.target.value }))
+              }
             >
               <option value="system">system</option>
               <option value="light">light</option>
@@ -80,14 +82,21 @@ export function PreferencesPanel() {
             Language
             <input
               value={form.language}
-              onChange={(event) => setForm((prev) => ({ ...prev, language: event.target.value }))}
+              onChange={(event) =>
+                setForm((prev) => ({ ...prev, language: event.target.value }))
+              }
             />
           </label>
           <label className="field">
             Table density
             <select
               value={form.table_density}
-              onChange={(event) => setForm((prev) => ({ ...prev, table_density: event.target.value }))}
+              onChange={(event) =>
+                setForm((prev) => ({
+                  ...prev,
+                  table_density: event.target.value,
+                }))
+              }
             >
               <option value="comfortable">comfortable</option>
               <option value="compact">compact</option>
@@ -98,7 +107,9 @@ export function PreferencesPanel() {
             <textarea
               rows={4}
               value={form.metadata}
-              onChange={(event) => setForm((prev) => ({ ...prev, metadata: event.target.value }))}
+              onChange={(event) =>
+                setForm((prev) => ({ ...prev, metadata: event.target.value }))
+              }
             />
           </label>
           <button className="primary" type="submit" disabled={saving}>

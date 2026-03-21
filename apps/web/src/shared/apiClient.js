@@ -1,6 +1,7 @@
 import { getToken } from "./sessionStore";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 
 let unauthorizedHandler = null;
 
@@ -15,7 +16,8 @@ function normalizeApiError(status, data) {
 
   let message = "Error inesperado";
   if (typeof detail === "string") message = detail;
-  else if (Array.isArray(detail) && detail.length > 0) message = detail[0]?.msg ?? message;
+  else if (Array.isArray(detail) && detail.length > 0)
+    message = detail[0]?.msg ?? message;
   else if (typeof data?.message === "string") message = data.message;
 
   return { status, message, code, details, detail, raw: data };
@@ -36,7 +38,11 @@ export async function apiRequest(path, options = {}, config = {}) {
   const token = getToken();
   const headers = new Headers(options.headers || {});
 
-  if (!headers.has("Content-Type") && options.body && typeof options.body === "string") {
+  if (
+    !headers.has("Content-Type") &&
+    options.body &&
+    typeof options.body === "string"
+  ) {
     headers.set("Content-Type", "application/json");
   }
   if (!skipAuth && token) {
