@@ -48,6 +48,16 @@ Formato: `type(scope): descripción en imperativo`. Sin punto final en la primer
 
 Si un commit mezcla tipos (ej. feat + test), usar el tipo principal del cambio; o hacer dos commits si es posible (feat y test).
 
+## GitHub CLI (`gh`) — recomendado, no obligatorio
+
+- **Qué es:** la [GitHub CLI](https://cli.github.com/) expone GitHub desde terminal (incluida la creación de Pull Requests).
+- **Para qué en este proyecto:** tras `git push`, abrir o actualizar un PR con título y cuerpo sin usar solo el navegador; encaja con el flujo descrito en `docs/architecture/git-workflow.md` (base **develop** salvo indicación contraria).
+- **No es requisito:** el flujo de ramas, commits y push sigue siendo el mismo con o sin `gh`.
+- **Instalación en Windows (recomendación):** `winget install --id GitHub.cli`
+- **Autenticación:** el entorno debe tener sesión válida (`gh auth login` u otro método que documente GitHub). Sin login, `gh pr create` fallará.
+- **Alcance para agentes:** usar `gh` de forma acotada a **apertura o consulta de PRs** (p. ej. `gh pr create`, `gh pr view`). No ejecutar merges, borrado de ramas remotas ni acciones administrativas salvo instrucción explícita del humano.
+- **Ejemplo típico tras push:** `gh pr create --base develop --title "..." --body "..."`
+
 ## Comportamiento
 
 1. **Al invocarte** con una petición de commit/PR:

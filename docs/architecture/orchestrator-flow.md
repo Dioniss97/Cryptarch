@@ -3,6 +3,16 @@
 > Si vienes desde `AGENTS.md`, aqui veras el flujo operativo completo.
 > Si necesitas convenciones de git/PR, continua en `git-workflow.md`.
 
+## Mapa del documento
+
+| Seccion | Para que sirve |
+|---|---|
+| `## Subagentes disponibles` | Ver responsabilidades por subagente. |
+| `## Flujo típico (tarea de desarrollo)` | Entender el ciclo completo de una tarea. |
+| `## Flujo test → fallo → debug → test` | Recordar la secuencia de recuperación ante fallos. |
+| `## Engram y subagentes` | Aclarar el reparto de memoria/contexto. |
+| `## Enlace con el resto de documentos` | Navegar al siguiente documento recomendado. |
+
 El **agente principal** en Cursor actúa como **orquestador**: no ejecuta tests ni git directamente; delega en subagentes y coordina el flujo hasta el éxito.
 
 **Flujo Git por tarea (rama → trabajo → tests → debug si hace falta → commits legibles → push → PR):** ver `git-workflow.md` en esta misma carpeta. Los agentes pueden consultar ese documento para el ciclo completo hasta la PR.

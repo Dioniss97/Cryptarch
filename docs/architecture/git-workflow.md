@@ -4,6 +4,15 @@
 > Si vienes desde `orchestrator-flow.md`, aqui tienes el detalle de rama/commit/push/PR.
 > Si vienes desde `README.md`, te recomendamos leer antes `AGENTS.md` y `orchestrator-flow.md`.
 
+## Mapa del documento
+
+| Seccion | Para que sirve |
+|---|---|
+| `## Modelo de ramas` | Ver estrategia de ramas (`develop`, `main`, sprint). |
+| `## Ciclo por sprint (pasos en orden)` | Ejecutar el flujo de entrega sin saltos. |
+| `## Convenciones de commits (resumen)` | Mantener mensajes consistentes y legibles. |
+| `## Enlace con el resto de documentos` | Volver al mapa global de lectura. |
+
 Documento de referencia para agentes y humanos: ciclo de trabajo por sprint que termina en Pull Request. Los agentes pueden consultar este doc (o la memoria Engram `docs/git-workflow` si está digerida) para seguir el flujo sin ambigüedad.
 
 ## Modelo de ramas
@@ -38,6 +47,8 @@ Para cada sprint (`SprintX` o `SprintX-Y`) definido:
 
 7. **Abrir (o actualizar) PR**  
    Pull Request hacia **develop** (no hacia `main`). Título y descripción útiles (incluir sprint y alcance). El orquestador puede invocar el subagente **git-pr** para rama, commit, push y apertura/actualización del PR.
+
+   **GitHub CLI (`gh`, opcional):** quien trabaje desde terminal puede instalar la CLI (en Windows, por ejemplo `winget install --id GitHub.cli`), autenticarse con `gh auth login` y crear el PR con `gh pr create --base develop ...`. No sustituye el flujo de rama/commits/push; solo facilita abrir el PR. Detalle orientado a agentes en `.cursor/agents/git-pr.md` (sección GitHub CLI).
 
 8. **Cerrar tareas del sprint en Engram**  
    Cuando tests pasan, cambios commiteados y PR abierta: actualizar las `tasks/<id>` del sprint con What/Why/Where/Learned y `Status: done` cuando corresponda. El humano revisa y mergea el PR en GitHub.
