@@ -9,6 +9,8 @@ from jose import JWTError, jwt
 from pydantic import BaseModel
 from shared_contract import ROLE_ADMIN
 
+from adapters.driven.persistence.db import get_db
+
 # So Swagger UI shows "Authorize" and sends Bearer token on every request
 _http_bearer = HTTPBearer(auto_error=False)
 
