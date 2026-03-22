@@ -69,4 +69,4 @@ import { ROLE_ADMIN, SESSION_STORAGE_KEY } from "@cryptarch/shared";
 ## Siguiente lectura
 
 - [README raíz](../../README.md), [AGENTS.md](../../AGENTS.md).
-- `apps/web/src/shared/`: utilidades **solo front**; este paquete es **compartido normativo** + consumo JS.
+- [apps/web/src/shared/](../../apps/web/src/shared/): utilidades **solo front**; este paquete es **compartido normativo** + consumo JS.

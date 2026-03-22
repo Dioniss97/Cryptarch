@@ -1,7 +1,7 @@
 # Flujo del orquestador y subagentes
 
-> Si vienes desde `AGENTS.md`, aqui veras el flujo operativo completo.
-> Si necesitas convenciones de git/PR, continua en `git-workflow.md`.
+> Si vienes desde [AGENTS.md](../../AGENTS.md), aqui veras el flujo operativo completo.
+> Si necesitas convenciones de git/PR, continua en [git-workflow.md](git-workflow.md).
 
 ## Mapa del documento
 
@@ -15,7 +15,7 @@
 
 El **agente principal** en Cursor actúa como **orquestador**: no ejecuta tests ni git directamente; delega en subagentes y coordina el flujo hasta el éxito.
 
-**Flujo Git por tarea (rama → trabajo → tests → debug si hace falta → commits legibles → push → PR):** ver `git-workflow.md` en esta misma carpeta. Los agentes pueden consultar ese documento para el ciclo completo hasta la PR.
+**Flujo Git por tarea (rama → trabajo → tests → debug si hace falta → commits legibles → push → PR):** ver [git-workflow.md](git-workflow.md) en esta misma carpeta. Los agentes pueden consultar ese documento para el ciclo completo hasta la PR.
 
 (Shell por defecto: ver regla **project-context** — Git Bash / sintaxis bash.)
 
@@ -23,10 +23,10 @@ El **agente principal** en Cursor actúa como **orquestador**: no ejecuta tests 
 
 | Subagente | Definición | Responsabilidad |
 |-----------|------------|-----------------|
-| **test-runner** | `.cursor/agents/test-runner.md` | Ejecutar la suite de tests (pytest, etc.) y reportar resultado (pass/fail, resumen de fallos). |
-| **git-pr** | `.cursor/agents/git-pr.md` | Ramas por sprint (`SprintX` o `SprintX-Y`), commits (Conventional Commits), push y apertura/actualización de PRs. |
-| **debugger** | `.cursor/agents/debugger.md` | Cuando un test falla: recibir contexto del orquestador, diagnosticar, aplicar fix y reportar. No lanza tests. |
-| **ai-worker** | `.cursor/agents/ai-worker.md` | Ejecutar la tarea de implementación que asigne el orquestador (código, tests iniciales, refactors). |
+| **test-runner** | [`.cursor/agents/test-runner.md`](../../.cursor/agents/test-runner.md) | Ejecutar la suite de tests (pytest, etc.) y reportar resultado (pass/fail, resumen de fallos). |
+| **git-pr** | [`.cursor/agents/git-pr.md`](../../.cursor/agents/git-pr.md) | Ramas por sprint (`SprintX` o `SprintX-Y`), commits (Conventional Commits), push y apertura/actualización de PRs. |
+| **debugger** | [`.cursor/agents/debugger.md`](../../.cursor/agents/debugger.md) | Cuando un test falla: recibir contexto del orquestador, diagnosticar, aplicar fix y reportar. No lanza tests. |
+| **ai-worker** | [`.cursor/agents/ai-worker.md`](../../.cursor/agents/ai-worker.md) | Ejecutar la tarea de implementación que asigne el orquestador (código, tests iniciales, refactors). |
 
 ## Flujo típico (tarea de desarrollo)
 
@@ -62,7 +62,7 @@ Regla práctica: el orquestador siempre puede pasar contexto desde Engram al inv
 
 ## Enlace con el resto de documentos
 
-- Vision general y arranque local: `../../README.md`.
-- Roles y skills por tipo de trabajo: `../../AGENTS.md`.
-- Reglas de ramas, commits y PR: `git-workflow.md`.
-- Prioridad y alcance de tareas: `../sprints/tasks.md`.
+- Vision general y arranque local: [README.md](../../README.md).
+- Roles y skills por tipo de trabajo: [AGENTS.md](../../AGENTS.md).
+- Reglas de ramas, commits y PR: [git-workflow.md](git-workflow.md).
+- Prioridad y alcance de tareas: [tasks.md](../sprints/tasks.md).

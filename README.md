@@ -119,13 +119,13 @@ No hace falta escribir la ruta del fichero. Con `/` veras los comandos disponibl
 
 | Ruta | Que contiene | Notas |
 |---|---|---|
-| `apps/api/` | API FastAPI | Capas `presentation/application/domain/infrastructure/tests`. |
-| `apps/web/` | Frontend React | Admin + chat. |
-| `workers/vectorizer/` | Worker de ingestion/vectorizacion | Pipeline hacia Qdrant. |
-| `packages/shared/` | Contratos y constantes compartidas | Reutilizable entre componentes. |
-| `infra/` | Infra local | Docker Compose y entorno de desarrollo. |
-| `docs/` | Documentacion de arquitectura/dominio/sprints | Guia de contexto y alcance. |
-| `.cursor/` | Config de trabajo con IA | Reglas, skills, agentes y comandos. |
+| [apps/api/](apps/api/README.md) | API FastAPI | Capas `presentation/application/domain/infrastructure/tests`. |
+| [apps/web/](apps/web/README.md) | Frontend React | Admin + chat. |
+| [workers/vectorizer/](workers/vectorizer/README.md) | Worker de ingestion/vectorizacion | Pipeline hacia Qdrant. |
+| [packages/shared/](packages/shared/README.md) | Contratos y constantes compartidas | Reutilizable entre componentes. |
+| [infra/](infra/README.md) | Infra local | Docker Compose y entorno de desarrollo. |
+| [docs/](docs/) | Documentacion de arquitectura/dominio/sprints | Guia de contexto y alcance. |
+| [.cursor/](.cursor/) | Config de trabajo con IA | Reglas, skills, agentes y comandos. |
 
 ## Stack tecnico
 
@@ -142,11 +142,11 @@ Orden sugerido para entender el proyecto de menos a mas:
 
 | Orden | Documento | Para que sirve |
 |---|---|---|
-| 1 | `README.md` | Punto de entrada: vision general y quick start. |
-| 2 | `AGENTS.md` | Mapa de roles, skills y subagentes; cuando delegar y como. |
-| 3 | `docs/architecture/orchestrator-flow.md` | Flujo operativo completo del orquestador con subagentes. |
-| 4 | `docs/architecture/git-workflow.md` | Convenciones de ramas/commits/PR y cierre de trabajo. |
-| 5 | `docs/sprints/tasks.md` | Backlog de referencia para priorizar y poblar Engram. |
+| 1 | [README.md](README.md) | Punto de entrada: vision general y quick start. |
+| 2 | [AGENTS.md](AGENTS.md) | Mapa de roles, skills y subagentes; cuando delegar y como. |
+| 3 | [docs/architecture/orchestrator-flow.md](docs/architecture/orchestrator-flow.md) | Flujo operativo completo del orquestador con subagentes. |
+| 4 | [docs/architecture/git-workflow.md](docs/architecture/git-workflow.md) | Convenciones de ramas/commits/PR y cierre de trabajo. |
+| 5 | [docs/sprints/tasks.md](docs/sprints/tasks.md) | Backlog de referencia para priorizar y poblar Engram. |
 
 ## Troubleshooting rapido
 

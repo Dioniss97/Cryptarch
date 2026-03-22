@@ -1,8 +1,8 @@
 # Flujo Git por sprint (hasta la PR)
 
 > Este documento define como pasar de cambios locales a PR de forma consistente.
-> Si vienes desde `orchestrator-flow.md`, aqui tienes el detalle de rama/commit/push/PR.
-> Si vienes desde `README.md`, te recomendamos leer antes `AGENTS.md` y `orchestrator-flow.md`.
+> Si vienes desde [orchestrator-flow.md](orchestrator-flow.md), aqui tienes el detalle de rama/commit/push/PR.
+> Si vienes desde el [README.md](../../README.md), te recomendamos leer antes [AGENTS.md](../../AGENTS.md) y [orchestrator-flow.md](orchestrator-flow.md).
 
 ## Mapa del documento
 
@@ -48,7 +48,7 @@ Para cada sprint (`SprintX` o `SprintX-Y`) definido:
 7. **Abrir (o actualizar) PR**  
    Pull Request hacia **develop** (no hacia `main`). Título y descripción útiles (incluir sprint y alcance). El orquestador puede invocar el subagente **git-pr** para rama, commit, push y apertura/actualización del PR.
 
-   **GitHub CLI (`gh`, opcional):** quien trabaje desde terminal puede instalar la CLI (en Windows, por ejemplo `winget install --id GitHub.cli`), autenticarse con `gh auth login` y crear el PR con `gh pr create --base develop ...`. No sustituye el flujo de rama/commits/push; solo facilita abrir el PR. Detalle orientado a agentes en `.cursor/agents/git-pr.md` (sección GitHub CLI).
+   **GitHub CLI (`gh`, opcional):** quien trabaje desde terminal puede instalar la CLI (en Windows, por ejemplo `winget install --id GitHub.cli`), autenticarse con `gh auth login` y crear el PR con `gh pr create --base develop ...`. No sustituye el flujo de rama/commits/push; solo facilita abrir el PR. Detalle orientado a agentes en [`.cursor/agents/git-pr.md`](../../.cursor/agents/git-pr.md) (sección GitHub CLI).
 
 8. **Cerrar tareas del sprint en Engram**  
    Cuando tests pasan, cambios commiteados y PR abierta: actualizar las `tasks/<id>` del sprint con What/Why/Where/Learned y `Status: done` cuando corresponda. El humano revisa y mergea el PR en GitHub.
@@ -59,9 +59,9 @@ Por cada sprint: **rama desde develop → trabajar → testear → [debug → te
 
 ## Dónde se implementa
 
-- **Orquestador**: no ejecuta git ni tests a mano; coordina y delega (ver `orchestrator-flow.md`).
-- **Subagente git-pr**: rama, commit, push y PR (detalle en `.cursor/agents/git-pr.md`).
-- **Subagentes test-runner y debugger**: ver `orchestrator-flow.md`.
+- **Orquestador**: no ejecuta git ni tests a mano; coordina y delega (ver [orchestrator-flow.md](orchestrator-flow.md)).
+- **Subagente git-pr**: rama, commit, push y PR (detalle en [`.cursor/agents/git-pr.md`](../../.cursor/agents/git-pr.md)).
+- **Subagentes test-runner y debugger**: ver [orchestrator-flow.md](orchestrator-flow.md).
 
 ## Convenciones de commits (resumen)
 
@@ -75,11 +75,11 @@ Reglas:
 - `scope` opcional pero recomendado (`api`, `web`, `worker`, `docs`).
 - Tras `type(scope)` debe ir `:` y una descripción breve en imperativo, sin punto final.
 
-Detalle completo en `.cursor/agents/git-pr.md`.
+Detalle completo en [`.cursor/agents/git-pr.md`](../../.cursor/agents/git-pr.md).
 
 ## Enlace con el resto de documentos
 
-- Vision general y quick start: `../../README.md`.
-- Roles y subagentes: `../../AGENTS.md`.
-- Orquestacion end-to-end: `orchestrator-flow.md`.
-- Priorizacion de trabajo por sprint: `../sprints/tasks.md`.
+- Vision general y quick start: [README.md](../../README.md).
+- Roles y subagentes: [AGENTS.md](../../AGENTS.md).
+- Orquestacion end-to-end: [orchestrator-flow.md](orchestrator-flow.md).
+- Priorizacion de trabajo por sprint: [tasks.md](../sprints/tasks.md).

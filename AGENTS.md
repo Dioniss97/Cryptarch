@@ -1,18 +1,18 @@
 # Guía de roles y skills (Cursor)
 
-> Si vienes desde `README.md`, este documento te explica como trabajar el dia a dia con agentes.
-> Si quieres el flujo operativo paso a paso, continua en `docs/architecture/orchestrator-flow.md`.
+> Si vienes desde [README.md](README.md), este documento te explica como trabajar el dia a dia con agentes.
+> Si quieres el flujo operativo paso a paso, continua en [docs/architecture/orchestrator-flow.md](docs/architecture/orchestrator-flow.md).
 
 ## Lectura rapida
 
 | Si necesitas... | Ve a... |
 |---|---|
-| Entender roles y responsabilidades | `## Rol orquestador` |
-| Saber que subagente usar | `## Subagentes (usar en lugar de comandos a mano)` |
-| Elegir skill por tipo de tarea | `## Cuándo aplicar cada skill` |
-| Continuar con el flujo operativo | `docs/architecture/orchestrator-flow.md` |
+| Entender roles y responsabilidades | [Rol orquestador](#rol-orquestador) |
+| Saber que subagente usar | [Subagentes](#subagentes-usar-en-lugar-de-comandos-a-mano) |
+| Elegir skill por tipo de tarea | [Cuándo aplicar cada skill](#cuándo-aplicar-cada-skill) |
+| Continuar con el flujo operativo | [docs/architecture/orchestrator-flow.md](docs/architecture/orchestrator-flow.md) |
 
-El **agente principal actúa como orquestador**: coordina subagentes, mantiene estado en Engram y no ejecuta tests ni git a mano. **Engram es la piedra angular**: solo el orquestador escribe en Engram; los subagentes reciben instrucciones y referencias (observation_id, topic_key) para leer lo necesario. Flujo en `docs/architecture/orchestrator-flow.md`; protocolo Engram-agentes en `docs/architecture/engram-agent-protocol.md`.
+El **agente principal actúa como orquestador**: coordina subagentes, mantiene estado en Engram y no ejecuta tests ni git a mano. **Engram es la piedra angular**: solo el orquestador escribe en Engram; los subagentes reciben instrucciones y referencias (observation_id, topic_key) para leer lo necesario. Flujo en [docs/architecture/orchestrator-flow.md](docs/architecture/orchestrator-flow.md); protocolo Engram-agentes en [docs/architecture/engram-agent-protocol.md](docs/architecture/engram-agent-protocol.md).
 
 Para activar este comportamiento de forma explicita en chat, usa el comando:
 - `/orchestrator`
@@ -32,11 +32,11 @@ Todos los subagentes son **solo lectura** en Engram (mem_search, mem_get_observa
 
 | Subagente | Definición | Uso |
 |-----------|------------|-----|
-| **test-runner** | `.cursor/agents/test-runner.md` | Ejecutar tests; no invocar `pytest` en terminal. Si fallan, reportar para que el orquestador invoque al debugger. |
-| **git-pr** | `.cursor/agents/git-pr.md` | Ramas por sprint (`SprintX` o `SprintX-Y`), Conventional Commits, push, apertura/actualización de PRs. Puede recibir ref. a `tasks/<id>` para título/descripción del PR. *(Opcional: GitHub CLI `gh` para abrir PRs desde terminal; ver sección en ese archivo.)* |
-| **debugger** | `.cursor/agents/debugger.md` | Cuando un test falla: el orquestador escribe el brief en Engram y pasa la referencia; el debugger consulta por id/key, diagnostica, aplica fix y reporta. No lanza tests. |
-| **ai-worker** | `.cursor/agents/ai-worker.md` | Implementar lo que asigne el orquestador; consultar en Engram las observaciones/topic_keys que el orquestador indique (tarea, criterios, docs). |
-| **architecture-reviewer** (opcional) | `.cursor/agents/architecture-reviewer.md` | Misiones concretas de análisis: revisar estructura de carpetas, patrones, consistencia con docs; reportar al orquestador (no escribe en Engram). |
+| **test-runner** | [`.cursor/agents/test-runner.md`](.cursor/agents/test-runner.md) | Ejecutar tests; no invocar `pytest` en terminal. Si fallan, reportar para que el orquestador invoque al debugger. |
+| **git-pr** | [`.cursor/agents/git-pr.md`](.cursor/agents/git-pr.md) | Ramas por sprint (`SprintX` o `SprintX-Y`), Conventional Commits, push, apertura/actualización de PRs. Puede recibir ref. a `tasks/<id>` para título/descripción del PR. *(Opcional: GitHub CLI `gh` para abrir PRs desde terminal; ver sección en ese archivo.)* |
+| **debugger** | [`.cursor/agents/debugger.md`](.cursor/agents/debugger.md) | Cuando un test falla: el orquestador escribe el brief en Engram y pasa la referencia; el debugger consulta por id/key, diagnostica, aplica fix y reporta. No lanza tests. |
+| **ai-worker** | [`.cursor/agents/ai-worker.md`](.cursor/agents/ai-worker.md) | Implementar lo que asigne el orquestador; consultar en Engram las observaciones/topic_keys que el orquestador indique (tarea, criterios, docs). |
+| **architecture-reviewer** (opcional) | [`.cursor/agents/architecture-reviewer.md`](.cursor/agents/architecture-reviewer.md) | Misiones concretas de análisis: revisar estructura de carpetas, patrones, consistencia con docs; reportar al orquestador (no escribe en Engram). |
 
 Si el sistema permite invocar por nombre, usar el subagente; si solo hay shell, seguir el workflow descrito en el .md del subagente.
 
@@ -44,26 +44,26 @@ Si el sistema permite invocar por nombre, usar el subagente; si solo hay shell, 
 
 | Área de trabajo | Skill a leer y seguir | Rol mental |
 |-----------------|------------------------|------------|
-| **Memoria / tareas / doc** | `.cursor/skills/engram-memory/SKILL.md` | Buscar y guardar en Engram; task init/completion; docs y knowledge. |
-| **Backend / API / dominio** | `.cursor/skills/fastapi-tdd/SKILL.md` | Backend architect: FastAPI, límites de dominio, tenancy, TDD. Señalar acoplamientos ocultos y fugas de tenant. |
+| **Memoria / tareas / doc** | [`.cursor/skills/engram-memory/SKILL.md`](.cursor/skills/engram-memory/SKILL.md) | Buscar y guardar en Engram; task init/completion; docs y knowledge. |
+| **Backend / API / dominio** | [`.cursor/skills/fastapi-tdd/SKILL.md`](.cursor/skills/fastapi-tdd/SKILL.md) | Backend architect: FastAPI, límites de dominio, tenancy, TDD. Señalar acoplamientos ocultos y fugas de tenant. |
 | **Schema / migraciones / Postgres** | Misma disciplina que backend + revisión de schema | Schema reviewer: claves foráneas claras, índices tenant-aware. |
-| **Tests (dominio, tenancy, permisos)** | fastapi-tdd | Test enforcer: no dejar lógica crítica sin tests; fixtures deterministas. |
-| **Admin UI (React)** | `.cursor/skills/react-admin-slice/SKILL.md` | Frontend admin builder: rutas, CRUD, tablas, badges, controles reutilizables (tag picker, etc.), manejo de errores. |
-| **Ingestión / worker / cola Redis / Qdrant** | `.cursor/skills/vectorization-pipeline/SKILL.md` | Vector pipeline: jobs idempotentes, retry-safe, transiciones de estado explícitas. |
-| **Tras cambios de implementación** | `.cursor/skills/docs-sync/SKILL.md` | Actualizar docs para que reflejen el código. |
+| **Tests (dominio, tenancy, permisos)** | [fastapi-tdd](.cursor/skills/fastapi-tdd/SKILL.md) | Test enforcer: no dejar lógica crítica sin tests; fixtures deterministas. |
+| **Admin UI (React)** | [`.cursor/skills/react-admin-slice/SKILL.md`](.cursor/skills/react-admin-slice/SKILL.md) | Frontend admin builder: rutas, CRUD, tablas, badges, controles reutilizables (tag picker, etc.), manejo de errores. |
+| **Ingestión / worker / cola Redis / Qdrant** | [`.cursor/skills/vectorization-pipeline/SKILL.md`](.cursor/skills/vectorization-pipeline/SKILL.md) | Vector pipeline: jobs idempotentes, retry-safe, transiciones de estado explícitas. |
+| **Tras cambios de implementación** | [`.cursor/skills/docs-sync/SKILL.md`](.cursor/skills/docs-sync/SKILL.md) | Actualizar docs para que reflejen el código. |
 
 ## Resumen
 
-- **Tarea / memoria / doc** → engram-memory (y regla Engram en `.cursor/rules/engram-memory-workflow.mdc`).
+- **Tarea / memoria / doc** → engram-memory (y regla Engram en [`.cursor/rules/engram-memory-workflow.mdc`](.cursor/rules/engram-memory-workflow.mdc)).
 - **Backend/dominio/API** → fastapi-tdd.
 - **Admin React** → react-admin-slice.
 - **Worker/ingestión** → vectorization-pipeline.
 - **Después de implementar** → docs-sync.
 
-Las reglas en `.cursor/rules/` enlazan workflows (task, doc, knowledge) y skills por ámbito (p. ej. `apps/api/**` → fastapi-tdd).
+Las reglas en [`.cursor/rules/`](.cursor/rules/) enlazan workflows (task, doc, knowledge) y skills por ámbito (p. ej. `apps/api/**` → fastapi-tdd).
 
 ## Siguiente lectura recomendada
 
-- Para el flujo detallado de coordinacion: `docs/architecture/orchestrator-flow.md`.
-- Para como cerrar cambios con git y PR: `docs/architecture/git-workflow.md`.
-- Para escoger trabajo por prioridad: `docs/sprints/tasks.md`.
+- Para el flujo detallado de coordinacion: [docs/architecture/orchestrator-flow.md](docs/architecture/orchestrator-flow.md).
+- Para como cerrar cambios con git y PR: [docs/architecture/git-workflow.md](docs/architecture/git-workflow.md).
+- Para escoger trabajo por prioridad: [docs/sprints/tasks.md](docs/sprints/tasks.md).

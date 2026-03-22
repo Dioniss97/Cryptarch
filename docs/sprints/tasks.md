@@ -1,8 +1,8 @@
 # Tasks por prioridad (referencia / semilla)
 
 > Este documento te orienta sobre "que toca" por sprint.
-> Para entender como ejecutar el trabajo, ve a `../architecture/orchestrator-flow.md` y `../architecture/git-workflow.md`.
-> Para una vista general del proyecto, empieza por `../../README.md`.
+> Para entender como ejecutar el trabajo, ve a [orchestrator-flow.md](../architecture/orchestrator-flow.md) y [git-workflow.md](../architecture/git-workflow.md).
+> Para una vista general del proyecto, empieza por el [README](../../README.md).
 
 ## Mapa rapido de sprints
 
