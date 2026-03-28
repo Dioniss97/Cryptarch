@@ -146,4 +146,4 @@ Base URL actual: mismo host del API (sin prefijo `/api`).
 - 2026-03-14: Filter/group/actions implementados con `TagPicker`, editor `target_type + tags`, bindings `user/action/document_filter_ids`, y edición de `input_schema_json` + `input_schema_version`.
 - 2026-03-14: Chat MVP y preferencias implementados (`GET /actions/{id}/input-schema`, `POST /actions/{id}/execute`, formulario dinámico v1, `GET/PATCH /me/preferences`).
 - 2026-03-14: Hardening básico y smoke tests añadidos (`StatusBadge`, `ApiErrorBanner`, `LoadingBlock`, `EmptyState`, `ConfirmDelete`, tests Vitest + Testing Library).
-- 2026-03-14: DTOs CRUD de admin alineados al contrato backend real (payloads create/update por recurso, `tag_ids` con `TagPicker`, JSON textarea robusto para `auth_config`/`request_config`/`input_schema_json`, y `input_schema_version` numérico).
+- 2026-03-14: DTOs CRUD de admin alineados al contrato backend real (payloads create/update por recurso, `tag_ids` con `TagPicker`, JSON textarea robusto para `auth_config`/`request_config`/`input_schema_json`, y `input_schema_version` versionado como identificador string).

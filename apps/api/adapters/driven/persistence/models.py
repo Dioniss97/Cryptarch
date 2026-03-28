@@ -124,6 +124,8 @@ class ActionOrm(Base):
     method = Column(String(16), nullable=False)
     path = Column(String(2048), nullable=False)
     request_config = Column(JSONB, nullable=True)
+    input_schema_json = Column(JSONB, nullable=True)
+    input_schema_version = Column(String(128), nullable=True)
     name = Column(String(255), nullable=True)
 
 
