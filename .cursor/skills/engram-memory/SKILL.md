@@ -53,7 +53,7 @@ Update `tasks/<task_id>` with:
 - **Why**: Reason for the change.
 - **Where**: Files or modules affected.
 - **Learned**: Risks, gotchas, or follow-ups.
-- **Status**: Set to `done` only when tests pass, code is committed and a PR is opened (human reviews PRs on GitHub).
+- **Status**: Set to `done` only when tests pass locally, code is committed, a PR is open, **and** the relevant GitHub Actions checks on that PR are green (orquestador valida con subagente **ci-triage**). A PR alone is not enough. Use **`blocked`** with reason if CI/org/infra blocks until a human resolves it.
 
 ### 5. Task and sprint status (autonomous workflow)
 
@@ -64,11 +64,12 @@ Every task and sprint memory must include in its **content** a line:
 - **pending**: not started.
 - **in_progress**: being worked on.
 - **blocked**: blocked (note reason in content).
-- **done**: tests + commit + PR; human only reviews PRs.
+- **done**: tests + commit + PR + **CI checks relevantes verdes** en GitHub (o merge tras verde); human only reviews PRs.
+- **blocked**: CI, permisos o decisión humana impiden cerrar; documentar motivo.
 
-**When to update status:** Start task → `Status: in_progress`. Blocked → `Status: blocked`. Tests + commit + PR → `Status: done`; optionally update `sprints/sprint-XX` (e.g. `sprints/sprint-02`) with the same status convention.
+**When to update status:** Start task → `Status: in_progress`. Blocked → `Status: blocked`. Tests + commit + PR + **CI verde** (vía flujo orquestador + `ci-triage`) → `Status: done`; optionally update `sprints/sprint-XX` (e.g. `sprints/sprint-02`) with the same status convention.
 
-**How to find work:** Use `mem_search` with phrases like: "Status: pending", "Status: in_progress", "tasks pending", "sprint blocked", "sprints sprint-02". No separate checklist type — status is inside the same observation content for `tasks/<id>` and `sprints/sprint-XX`.
+**How to find work:** Use `mem_search` with phrases like: "Status: pending", "Status: in_progress", "tasks pending", "sprint blocked", "sprints sprint-02". No separate checklist type — status is inside the same observation content for `tasks/<id>` and `sprints/sprint-XX`. Do not mark `done` until CI is green or the task is explicitly `blocked`; see `docs/architecture/orchestrator-flow.md` and `.cursor/agents/ci-triage.md`.
 
 ## Guidelines
 
