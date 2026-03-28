@@ -1,7 +1,6 @@
 """Unit tests for action request_config validation (method vs body)."""
 
 import pytest
-
 from core.domain.action_request_config import (
     RequestConfigValidationError,
     validate_and_normalize_request_config,
@@ -20,9 +19,7 @@ def test_get_without_body_ok():
 
 def test_get_with_body_rejected():
     with pytest.raises(RequestConfigValidationError, match="body"):
-        validate_and_normalize_request_config(
-            "GET", {"body": {"k": 1}}
-        )
+        validate_and_normalize_request_config("GET", {"body": {"k": 1}})
 
 
 def test_delete_with_body_rejected():
