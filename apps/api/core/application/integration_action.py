@@ -3,6 +3,8 @@
 Backward-compatible semantic layer over action use cases.
 """
 
+from typing import Any
+
 from core.application import action as action_use_cases
 from core.domain.models import IntegrationAction
 from core.ports.action_repository import IntegrationActionRepository
@@ -53,6 +55,8 @@ def create_integration_action(
     repo: IntegrationActionRepository,
     integration_repo: IntegrationRepository,
     tag_repo: TagRepository,
+    input_schema_json: Any | None = None,
+    input_schema_version: str | None = None,
 ) -> IntegrationAction:
     action = action_use_cases.create_action(
         tenant_id=tenant_id,
@@ -61,6 +65,8 @@ def create_integration_action(
         path=path,
         name=name,
         request_config=request_config,
+        input_schema_json=input_schema_json,
+        input_schema_version=input_schema_version,
         tag_ids=tag_ids,
         repo=repo,
         connector_repo=integration_repo,
@@ -79,6 +85,8 @@ def update_integration_action(
     tag_ids: list[str] | None,
     repo: IntegrationActionRepository,
     tag_repo: TagRepository,
+    input_schema_json: Any | None = None,
+    input_schema_version: str | None = None,
 ) -> IntegrationAction:
     action = action_use_cases.update_action(
         action_id=integration_action_id,
@@ -87,6 +95,8 @@ def update_integration_action(
         path=path,
         name=name,
         request_config=request_config,
+        input_schema_json=input_schema_json,
+        input_schema_version=input_schema_version,
         tag_ids=tag_ids,
         repo=repo,
         tag_repo=tag_repo,

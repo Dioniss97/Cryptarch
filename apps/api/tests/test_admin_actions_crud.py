@@ -265,6 +265,8 @@ def test_get_action_same_tenant_200(
     assert data["path"] == "/items"
     assert data["name"] == "List items"
     assert data["request_config"] == {"timeout": 30}
+    assert data.get("input_schema_json") is None
+    assert data.get("input_schema_version") is None
     assert _uuid_eq(data["integration_id"], data["connector_id"])
     assert "tag_ids" in data
     assert data["tag_ids"] == []
@@ -450,6 +452,126 @@ def test_create_action_tag_other_tenant_404(
         },
     )
     assert r.status_code == 404
+
+
+def test_create_action_get_with_request_body_in_config_422(
+    client: TestClient, tenant, admin_user, connector
+):
+    r = client.post(
+        "/admin/actions",
+        headers=_auth_headers(tenant.id, admin_user.id),
+        json={
+            "connector_id": str(uuid.UUID(connector.id)),
+            "method": "GET",
+            "path": "/items",
+            "request_config": {"body": {"foo": "bar"}},
+        },
+    )
+    assert r.status_code == 422
+
+
+def test_create_action_post_with_body_in_config_201(
+    client: TestClient, tenant, admin_user, connector
+):
+    r = client.post(
+        "/admin/actions",
+        headers=_auth_headers(tenant.id, admin_user.id),
+        json={
+            "connector_id": str(uuid.UUID(connector.id)),
+            "method": "POST",
+            "path": "/items",
+            "request_config": {
+                "headers": {"Content-Type": "application/json"},
+                "body": {"name": "{{title}}"},
+            },
+        },
+    )
+    assert r.status_code == 201
+    data = r.json()
+    assert data["method"] == "POST"
+    assert data["request_config"]["body"] == {"name": "{{title}}"}
+    assert data["request_config"]["headers"]["Content-Type"] == "application/json"
+
+
+def test_create_action_persists_input_schema_roundtrip(
+    client: TestClient, tenant, admin_user, connector
+):
+    schema = {"type": "object", "properties": {"x": {"type": "string"}}}
+    r = client.post(
+        "/admin/actions",
+        headers=_auth_headers(tenant.id, admin_user.id),
+        json={
+            "connector_id": str(uuid.UUID(connector.id)),
+            "method": "GET",
+            "path": "/items",
+            "input_schema_json": schema,
+            "input_schema_version": "2020-12",
+        },
+    )
+    assert r.status_code == 201
+    data = r.json()
+    assert data["input_schema_json"] == schema
+    assert data["input_schema_version"] == "2020-12"
+
+    r2 = client.get(
+        f"/admin/actions/{data['id']}",
+        headers=_auth_headers(tenant.id, admin_user.id),
+    )
+    assert r2.status_code == 200
+    got = r2.json()
+    assert got["input_schema_json"] == schema
+    assert got["input_schema_version"] == "2020-12"
+
+
+def test_update_action_patch_input_schema_200(
+    client: TestClient, tenant, admin_user, connector, db_session: Session
+):
+    action = Action(
+        id=_id(),
+        tenant_id=tenant.id,
+        connector_id=connector.id,
+        method="GET",
+        path="/items",
+        name="List",
+    )
+    db_session.add(action)
+    db_session.flush()
+
+    schema = {"type": "object"}
+    r = client.patch(
+        f"/admin/actions/{action.id}",
+        headers=_auth_headers(tenant.id, admin_user.id),
+        json={
+            "input_schema_json": schema,
+            "input_schema_version": "draft-07",
+        },
+    )
+    assert r.status_code == 200
+    assert r.json()["input_schema_json"] == schema
+    assert r.json()["input_schema_version"] == "draft-07"
+
+
+def test_update_action_method_to_get_with_existing_body_config_422(
+    client: TestClient, tenant, admin_user, connector, db_session: Session
+):
+    action = Action(
+        id=_id(),
+        tenant_id=tenant.id,
+        connector_id=connector.id,
+        method="POST",
+        path="/items",
+        name="Create",
+        request_config={"body": {"a": 1}},
+    )
+    db_session.add(action)
+    db_session.flush()
+
+    r = client.patch(
+        f"/admin/actions/{action.id}",
+        headers=_auth_headers(tenant.id, admin_user.id),
+        json={"method": "GET"},
+    )
+    assert r.status_code == 422
 
 
 # ----- Update -----

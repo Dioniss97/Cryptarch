@@ -66,6 +66,8 @@ class Action:
     path: str
     name: str | None = None
     request_config: dict[str, Any] | None = None
+    input_schema_json: Any | None = None
+    input_schema_version: str | None = None
     id: str | None = None
 
 
