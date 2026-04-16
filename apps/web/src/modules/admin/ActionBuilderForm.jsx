@@ -75,9 +75,7 @@ export function ActionBuilderForm({
 
   function buildRequestConfig() {
     const rc = {
-      auth: form.useConnectorAuth
-        ? { mode: "connector" }
-        : { mode: "none" },
+      auth: form.useConnectorAuth ? { mode: "connector" } : { mode: "none" },
       headers: pairsToRecord(form.headers),
       query_params: pairsToRecord(form.queryParams),
     };
@@ -89,7 +87,9 @@ export function ActionBuilderForm({
     if (t !== undefined && t !== "") {
       const n = Number(t);
       if (!Number.isFinite(n) || n < 1) {
-        throw new Error("Timeout debe ser un número mayor o igual a 1 (segundos).");
+        throw new Error(
+          "Timeout debe ser un número mayor o igual a 1 (segundos).",
+        );
       }
       rc.timeout = Math.round(n);
     }
@@ -289,144 +289,149 @@ export function ActionBuilderForm({
           Schema de entrada (campos desde el chat)
         </summary>
         <div className="action-builder-step action-builder-step-nested">
-        <div className="panel subtle">
-          <div className="row spread">
-            <strong>Schema de entrada</strong>
-            <button
-              type="button"
-              onClick={() =>
-                setForm((prev) => ({
-                  ...prev,
-                  schemaFields: [
-                    ...ensureSchemaRows(prev.schemaFields),
-                    { name: "", type: "string" },
-                  ],
-                }))
-              }
-            >
-              Añadir campo
-            </button>
-          </div>
-          <small className="muted">
-            Define los campos que recibirá la acción desde el chat.
-          </small>
-          <div className="stack dense">
-            {ensureSchemaRows(form.schemaFields).map((field, index) => (
-              <div className="schema-row" key={`${field.name}-${index}`}>
-                <input
-                  placeholder="Nombre"
-                  value={field.name ?? ""}
-                  onChange={(event) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      schemaFields: prev.schemaFields.map((item, current) =>
-                        current === index
-                          ? { ...item, name: event.target.value }
-                          : item,
-                      ),
-                    }))
-                  }
-                />
-                <select
-                  value={field.type || "string"}
-                  onChange={(event) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      schemaFields: prev.schemaFields.map((item, current) =>
-                        current === index
-                          ? { ...item, type: event.target.value }
-                          : item,
-                      ),
-                    }))
-                  }
-                >
-                  {FIELD_TYPES.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  placeholder="Descripcion"
-                  value={field.description ?? ""}
-                  onChange={(event) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      schemaFields: prev.schemaFields.map((item, current) =>
-                        current === index
-                          ? { ...item, description: event.target.value }
-                          : item,
-                      ),
-                    }))
-                  }
-                />
-                <label className="check-row">
+          <div className="panel subtle">
+            <div className="row spread">
+              <strong>Schema de entrada</strong>
+              <button
+                type="button"
+                onClick={() =>
+                  setForm((prev) => ({
+                    ...prev,
+                    schemaFields: [
+                      ...ensureSchemaRows(prev.schemaFields),
+                      { name: "", type: "string" },
+                    ],
+                  }))
+                }
+              >
+                Añadir campo
+              </button>
+            </div>
+            <small className="muted">
+              Define los campos que recibirá la acción desde el chat.
+            </small>
+            <div className="stack dense">
+              {ensureSchemaRows(form.schemaFields).map((field, index) => (
+                <div className="schema-row" key={`${field.name}-${index}`}>
                   <input
-                    type="checkbox"
-                    checked={Boolean(field.required)}
+                    placeholder="Nombre"
+                    value={field.name ?? ""}
                     onChange={(event) =>
                       setForm((prev) => ({
                         ...prev,
                         schemaFields: prev.schemaFields.map((item, current) =>
                           current === index
-                            ? { ...item, required: event.target.checked }
+                            ? { ...item, name: event.target.value }
                             : item,
                         ),
                       }))
                     }
                   />
-                  Requerido
-                </label>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setForm((prev) => ({
-                      ...prev,
-                      schemaFields:
-                        prev.schemaFields.length === 1
-                          ? [{ name: "", type: "string" }]
-                          : prev.schemaFields.filter(
-                              (_, current) => current !== index,
-                            ),
-                    }))
-                  }
-                >
-                  Quitar
-                </button>
-              </div>
-            ))}
+                  <select
+                    value={field.type || "string"}
+                    onChange={(event) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        schemaFields: prev.schemaFields.map((item, current) =>
+                          current === index
+                            ? { ...item, type: event.target.value }
+                            : item,
+                        ),
+                      }))
+                    }
+                  >
+                    {FIELD_TYPES.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    placeholder="Descripcion"
+                    value={field.description ?? ""}
+                    onChange={(event) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        schemaFields: prev.schemaFields.map((item, current) =>
+                          current === index
+                            ? { ...item, description: event.target.value }
+                            : item,
+                        ),
+                      }))
+                    }
+                  />
+                  <label className="check-row">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(field.required)}
+                      onChange={(event) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          schemaFields: prev.schemaFields.map(
+                            (item, current) =>
+                              current === index
+                                ? { ...item, required: event.target.checked }
+                                : item,
+                          ),
+                        }))
+                      }
+                    />
+                    Requerido
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setForm((prev) => ({
+                        ...prev,
+                        schemaFields:
+                          prev.schemaFields.length === 1
+                            ? [{ name: "", type: "string" }]
+                            : prev.schemaFields.filter(
+                                (_, current) => current !== index,
+                              ),
+                      }))
+                    }
+                  >
+                    Quitar
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
         </div>
       </details>
 
       <details className="action-builder-details" open>
-        <summary className="action-builder-details-summary">Tags y versión</summary>
+        <summary className="action-builder-details-summary">
+          Tags y versión
+        </summary>
         <div className="action-builder-step action-builder-step-nested">
-        <div className="field">
-          <span>Tags</span>
-          <TagPicker
-            options={tags}
-            value={form.tag_ids}
-            onChange={(next) => setForm((prev) => ({ ...prev, tag_ids: next }))}
-            onCreateTag={onCreateTag}
-          />
-        </div>
+          <div className="field">
+            <span>Tags</span>
+            <TagPicker
+              options={tags}
+              value={form.tag_ids}
+              onChange={(next) =>
+                setForm((prev) => ({ ...prev, tag_ids: next }))
+              }
+              onCreateTag={onCreateTag}
+            />
+          </div>
 
-        <label className="field field-sm">
-          Versión de schema
-          <input
-            type="number"
-            value={form.inputSchemaVersion}
-            min={1}
-            onChange={(event) =>
-              setForm((prev) => ({
-                ...prev,
-                inputSchemaVersion: Number(event.target.value || 1),
-              }))
-            }
-          />
-        </label>
+          <label className="field field-sm">
+            Versión de schema
+            <input
+              type="number"
+              value={form.inputSchemaVersion}
+              min={1}
+              onChange={(event) =>
+                setForm((prev) => ({
+                  ...prev,
+                  inputSchemaVersion: Number(event.target.value || 1),
+                }))
+              }
+            />
+          </label>
         </div>
       </details>
 
