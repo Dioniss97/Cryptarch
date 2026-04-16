@@ -33,7 +33,7 @@ export function KeyValueListEditor({
             onChange([...safeRows, emptyRow()]);
           }}
         >
-          Anadir fila
+          Añadir fila
         </button>
       </div>
       {helperText ? <small className="muted">{helperText}</small> : null}

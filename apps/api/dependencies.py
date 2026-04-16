@@ -2,7 +2,6 @@
 
 from typing import Annotated
 
-from adapters.driven.persistence.db import get_db
 from config import JWT_ALGORITHM, JWT_SECRET
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer

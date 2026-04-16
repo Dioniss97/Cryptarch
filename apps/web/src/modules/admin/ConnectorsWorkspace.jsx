@@ -7,15 +7,21 @@ import {
   LoadingBlock,
 } from "../../shared/ui";
 import { ActionBuilderForm } from "./ActionBuilderForm";
-import { normalizeList, parseJsonText, toJsonText } from "./adminHelpers";
+import { AuthKindSelector } from "./AuthKindSelector";
+import {
+  buildAuthConfigFromConnectorForm,
+  emptyConnectorAuthFormFields,
+  normalizeList,
+  parseConnectorAuthForForm,
+  summarizeConnectorAuth,
+} from "./adminHelpers";
 
 function emptyConnectorForm() {
-  return { base_url: "", auth_config: "" };
+  return { base_url: "", ...emptyConnectorAuthFormFields() };
 }
 
 function connectorLabel(connector, index) {
-  const url = connector?.base_url || "";
-  return url ? `Conector ${index + 1}` : `Conector ${index + 1}`;
+  return `Conector ${index + 1}`;
 }
 
 export function ConnectorsWorkspace() {
@@ -80,7 +86,7 @@ export function ConnectorsWorkspace() {
     try {
       const payload = {
         base_url: connectorForm.base_url,
-        auth_config: parseJsonText(connectorForm.auth_config, "auth_config"),
+        auth_config: buildAuthConfigFromConnectorForm(connectorForm),
       };
       if (editingConnectorId)
         await api.patch(`/admin/connectors/${editingConnectorId}`, payload);
@@ -154,35 +160,234 @@ export function ConnectorsWorkspace() {
       <section className="panel">
         <h3>{editingConnectorId ? "Editar conector" : "Nuevo conector"}</h3>
         <form className="stack" onSubmit={onSaveConnector}>
-          <div className="grid-2">
-            <label className="field">
-              Base URL
-              <input
-                required
-                value={connectorForm.base_url}
-                onChange={(event) =>
-                  setConnectorForm((prev) => ({
-                    ...prev,
-                    base_url: event.target.value,
-                  }))
-                }
-                placeholder="https://api.example.com"
-              />
-            </label>
-            <label className="field">
-              Auth config (JSON)
-              <textarea
-                rows={3}
-                value={connectorForm.auth_config}
-                onChange={(event) =>
-                  setConnectorForm((prev) => ({
-                    ...prev,
-                    auth_config: event.target.value,
-                  }))
-                }
-                placeholder='{"type":"bearer","token_env":"CRM_TOKEN"}'
-              />
-            </label>
+          <label className="field connector-base-url-field">
+            Base URL
+            <input
+              required
+              value={connectorForm.base_url}
+              onChange={(event) =>
+                setConnectorForm((prev) => ({
+                  ...prev,
+                  base_url: event.target.value,
+                }))
+              }
+              placeholder="https://api.example.com"
+            />
+            <p className="muted text-sm">
+              Solo la base compartida del proveedor. Luego cada acción define su
+              path específico.
+            </p>
+          </label>
+
+          <div className="field connector-auth-field">
+            <span>Autenticación del conector</span>
+            <p className="muted text-sm">
+              Esta pantalla persiste configuración reutilizable del conector. No
+              implica que el runtime ya ejecute todos estos esquemas; hoy sirve
+              para dejar la configuración guardada de forma clara y consistente.
+            </p>
+            <p className="muted text-sm">
+              Las credenciales no se guardan aquí: indica nombres de variables
+              de entorno o secretos del servidor, por ejemplo{" "}
+              <code>CRM_API_TOKEN</code> o <code>CRM_CLIENT_SECRET</code>.
+            </p>
+            <AuthKindSelector
+              value={connectorForm.authKind}
+              onChange={(nextAuthKind) =>
+                setConnectorForm((prev) => ({
+                  ...prev,
+                  authKind: nextAuthKind,
+                }))
+              }
+            />
+            {connectorForm.authKind === "none" ? (
+              <div className="auth-kind-panel">
+                <p className="muted text-sm">
+                  El conector no aportará autenticación por defecto a sus
+                  acciones.
+                </p>
+              </div>
+            ) : null}
+            {connectorForm.authKind === "bearer" ? (
+              <div className="auth-kind-panel">
+                <label className="field">
+                  Variable de entorno del token
+                  <input
+                    value={connectorForm.authBearerTokenEnv}
+                    onChange={(event) =>
+                      setConnectorForm((prev) => ({
+                        ...prev,
+                        authBearerTokenEnv: event.target.value,
+                      }))
+                    }
+                    placeholder="CRM_API_TOKEN"
+                  />
+                </label>
+                <p className="muted text-sm">
+                  Se guardará como{" "}
+                  <code>{`{"type":"bearer","token_env":"..."}`}</code>.
+                </p>
+              </div>
+            ) : null}
+            {connectorForm.authKind === "api_key" ? (
+              <div className="auth-kind-panel stack">
+                <div className="grid-2">
+                  <label className="field">
+                    Nombre de la cabecera
+                    <input
+                      value={connectorForm.authApiKeyHeader}
+                      onChange={(event) =>
+                        setConnectorForm((prev) => ({
+                          ...prev,
+                          authApiKeyHeader: event.target.value,
+                        }))
+                      }
+                      placeholder="X-API-Key"
+                    />
+                  </label>
+                  <label className="field">
+                    Variable de entorno del valor
+                    <input
+                      value={connectorForm.authApiKeyKeyEnv}
+                      onChange={(event) =>
+                        setConnectorForm((prev) => ({
+                          ...prev,
+                          authApiKeyKeyEnv: event.target.value,
+                        }))
+                      }
+                      placeholder="MY_API_KEY"
+                    />
+                  </label>
+                </div>
+                <p className="muted text-sm">
+                  Recomendado cuando el proveedor espera una cabecera propia en
+                  vez de un bearer token estándar.
+                </p>
+              </div>
+            ) : null}
+            {connectorForm.authKind === "basic" ? (
+              <div className="auth-kind-panel stack">
+                <div className="grid-2">
+                  <label className="field">
+                    Username
+                    <input
+                      value={connectorForm.authBasicUsername}
+                      onChange={(event) =>
+                        setConnectorForm((prev) => ({
+                          ...prev,
+                          authBasicUsername: event.target.value,
+                        }))
+                      }
+                      placeholder="integrations-bot"
+                    />
+                  </label>
+                  <label className="field">
+                    Variable de entorno del password
+                    <input
+                      value={connectorForm.authBasicPasswordEnv}
+                      onChange={(event) =>
+                        setConnectorForm((prev) => ({
+                          ...prev,
+                          authBasicPasswordEnv: event.target.value,
+                        }))
+                      }
+                      placeholder="CRM_BASIC_PASSWORD"
+                    />
+                  </label>
+                </div>
+                <p className="muted text-sm">
+                  Se persistirá como <code>username</code> +{" "}
+                  <code>password_env</code> dentro de <code>auth_config</code>.
+                </p>
+              </div>
+            ) : null}
+            {connectorForm.authKind === "oauth2" ? (
+              <div className="auth-kind-panel stack">
+                <div className="grid-2">
+                  <label className="field">
+                    Client ID
+                    <input
+                      value={connectorForm.authOAuth2ClientId}
+                      onChange={(event) =>
+                        setConnectorForm((prev) => ({
+                          ...prev,
+                          authOAuth2ClientId: event.target.value,
+                        }))
+                      }
+                      placeholder="crm-client-id"
+                    />
+                  </label>
+                  <label className="field">
+                    Secret del cliente (env)
+                    <input
+                      value={connectorForm.authOAuth2ClientSecretEnv}
+                      onChange={(event) =>
+                        setConnectorForm((prev) => ({
+                          ...prev,
+                          authOAuth2ClientSecretEnv: event.target.value,
+                        }))
+                      }
+                      placeholder="CRM_CLIENT_SECRET"
+                    />
+                  </label>
+                </div>
+                <div className="grid-2">
+                  <label className="field">
+                    Token URL
+                    <input
+                      value={connectorForm.authOAuth2TokenUrl}
+                      onChange={(event) =>
+                        setConnectorForm((prev) => ({
+                          ...prev,
+                          authOAuth2TokenUrl: event.target.value,
+                        }))
+                      }
+                      placeholder="https://auth.example.com/oauth/token"
+                    />
+                  </label>
+                  <label className="field">
+                    Scope(s) opcional
+                    <input
+                      value={connectorForm.authOAuth2Scope}
+                      onChange={(event) =>
+                        setConnectorForm((prev) => ({
+                          ...prev,
+                          authOAuth2Scope: event.target.value,
+                        }))
+                      }
+                      placeholder="contacts.read contacts.write"
+                    />
+                  </label>
+                </div>
+                <p className="muted text-sm">
+                  Se guardará como OAuth2 guiado de tipo{" "}
+                  <code>client_credentials</code>, con campos editables en{" "}
+                  <code>auth_config</code>.
+                </p>
+              </div>
+            ) : null}
+            {connectorForm.authKind === "custom" ? (
+              <div className="auth-kind-panel">
+                <label className="field">
+                  Auth config (JSON)
+                  <textarea
+                    rows={5}
+                    value={connectorForm.authCustomJson}
+                    onChange={(event) =>
+                      setConnectorForm((prev) => ({
+                        ...prev,
+                        authCustomJson: event.target.value,
+                      }))
+                    }
+                    placeholder='{"type":"oauth2","token_url":"https://...","extra":"..." }'
+                  />
+                </label>
+                <p className="muted text-sm">
+                  Úsalo solo si el método guiado no cubre tu caso. El backend lo
+                  persistirá como JSON libre.
+                </p>
+              </div>
+            ) : null}
           </div>
           <div className="row">
             <button
@@ -236,6 +441,9 @@ export function ConnectorsWorkspace() {
                 >
                   <strong>{connectorLabel(connector, index)}</strong>
                   <small>{connector.base_url}</small>
+                  <small className="muted connector-card-auth">
+                    {summarizeConnectorAuth(connector.auth_config)}
+                  </small>
                 </button>
               ))}
             </aside>
@@ -246,7 +454,7 @@ export function ConnectorsWorkspace() {
                     <div>
                       <h4>{selectedConnector.base_url}</h4>
                       <small className="muted">
-                        Auth heredada para actions de este conector.
+                        {summarizeConnectorAuth(selectedConnector.auth_config)}
                       </small>
                     </div>
                     <div className="row">
@@ -256,7 +464,7 @@ export function ConnectorsWorkspace() {
                           setEditingConnectorId(selectedConnector.id);
                           setConnectorForm({
                             base_url: selectedConnector.base_url || "",
-                            auth_config: toJsonText(
+                            ...parseConnectorAuthForForm(
                               selectedConnector.auth_config,
                             ),
                           });
@@ -278,6 +486,10 @@ export function ConnectorsWorkspace() {
                 <h4>{editingAction ? "Editar acción" : "Nueva acción HTTP"}</h4>
                 <ActionBuilderForm
                   initialAction={editingAction}
+                  connectorBaseUrl={selectedConnector?.base_url}
+                  connectorAuthSummary={summarizeConnectorAuth(
+                    selectedConnector?.auth_config,
+                  )}
                   tags={tags}
                   saving={savingAction}
                   onSubmit={onSaveAction}
@@ -299,9 +511,9 @@ export function ConnectorsWorkspace() {
                       <thead>
                         <tr>
                           <th>Nombre</th>
-                          <th>Metodo</th>
+                          <th>Método</th>
                           <th>Path</th>
-                          <th>Version schema</th>
+                          <th>Versión del schema</th>
                           <th>Acciones</th>
                         </tr>
                       </thead>

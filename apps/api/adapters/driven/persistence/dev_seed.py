@@ -4,12 +4,6 @@ from __future__ import annotations
 
 import logging
 
-from sqlalchemy.exc import SQLAlchemyError
-
-from adapters.driven.persistence.db import SessionLocal
-from adapters.driven.persistence.models import TenantOrm, UserOrm
-from adapters.driven.persistence.password_hasher import PasswordHasherImpl
-from adapters.driven.persistence.uuid_utils import parse_uuid
 from config import (
     APP_ENV,
     DEV_ADMIN_EMAIL,
@@ -17,6 +11,12 @@ from config import (
     DEV_SEED_TENANT_ID,
 )
 from shared_contract import ROLE_ADMIN
+from sqlalchemy.exc import SQLAlchemyError
+
+from adapters.driven.persistence.db import SessionLocal
+from adapters.driven.persistence.models import TenantOrm, UserOrm
+from adapters.driven.persistence.password_hasher import PasswordHasherImpl
+from adapters.driven.persistence.uuid_utils import parse_uuid
 
 logger = logging.getLogger(__name__)
 
