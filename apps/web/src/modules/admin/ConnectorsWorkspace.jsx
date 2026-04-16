@@ -7,6 +7,7 @@ import {
   LoadingBlock,
 } from "../../shared/ui";
 import { ActionBuilderForm } from "./ActionBuilderForm";
+import { AuthKindSelector } from "./AuthKindSelector";
 import {
   buildAuthConfigFromConnectorForm,
   emptyConnectorAuthFormFields,
@@ -159,48 +160,56 @@ export function ConnectorsWorkspace() {
       <section className="panel">
         <h3>{editingConnectorId ? "Editar conector" : "Nuevo conector"}</h3>
         <form className="stack" onSubmit={onSaveConnector}>
-          <div className="grid-2">
-            <label className="field">
-              Base URL
-              <input
-                required
-                value={connectorForm.base_url}
-                onChange={(event) =>
-                  setConnectorForm((prev) => ({
-                    ...prev,
-                    base_url: event.target.value,
-                  }))
-                }
-                placeholder="https://api.example.com"
-              />
-            </label>
-            <div className="field connector-auth-field">
-              <span>Autenticación del conector</span>
-              <p className="muted text-sm">
-                Las credenciales no se guardan aquí: indica nombres de variables
-                de entorno en el servidor (p. ej.{" "}
-                <code>CRM_API_TOKEN</code>). Las
-                acciones pueden reutilizar esta configuración.
-              </p>
-              <label className="field">
-                Tipo
-                <select
-                  value={connectorForm.authKind}
-                  onChange={(event) =>
-                    setConnectorForm((prev) => ({
-                      ...prev,
-                      authKind: event.target.value,
-                    }))
-                  }
-                >
-                  <option value="none">Ninguna</option>
-                  <option value="bearer">Bearer (token)</option>
-                  <option value="api_key">API key (cabecera)</option>
-                  <option value="oauth2">OAuth2 (client credentials básico)</option>
-                  <option value="custom">JSON avanzado</option>
-                </select>
-              </label>
-              {connectorForm.authKind === "bearer" ? (
+          <label className="field connector-base-url-field">
+            Base URL
+            <input
+              required
+              value={connectorForm.base_url}
+              onChange={(event) =>
+                setConnectorForm((prev) => ({
+                  ...prev,
+                  base_url: event.target.value,
+                }))
+              }
+              placeholder="https://api.example.com"
+            />
+            <p className="muted text-sm">
+              Solo la base compartida del proveedor. Luego cada acción define su
+              path específico.
+            </p>
+          </label>
+
+          <div className="field connector-auth-field">
+            <span>Autenticación del conector</span>
+            <p className="muted text-sm">
+              Esta pantalla persiste configuración reutilizable del conector. No
+              implica que el runtime ya ejecute todos estos esquemas; hoy sirve
+              para dejar la configuración guardada de forma clara y consistente.
+            </p>
+            <p className="muted text-sm">
+              Las credenciales no se guardan aquí: indica nombres de variables
+              de entorno o secretos del servidor, por ejemplo{" "}
+              <code>CRM_API_TOKEN</code> o <code>CRM_CLIENT_SECRET</code>.
+            </p>
+            <AuthKindSelector
+              value={connectorForm.authKind}
+              onChange={(nextAuthKind) =>
+                setConnectorForm((prev) => ({
+                  ...prev,
+                  authKind: nextAuthKind,
+                }))
+              }
+            />
+            {connectorForm.authKind === "none" ? (
+              <div className="auth-kind-panel">
+                <p className="muted text-sm">
+                  El conector no aportará autenticación por defecto a sus
+                  acciones.
+                </p>
+              </div>
+            ) : null}
+            {connectorForm.authKind === "bearer" ? (
+              <div className="auth-kind-panel">
                 <label className="field">
                   Variable de entorno del token
                   <input
@@ -214,8 +223,14 @@ export function ConnectorsWorkspace() {
                     placeholder="CRM_API_TOKEN"
                   />
                 </label>
-              ) : null}
-              {connectorForm.authKind === "api_key" ? (
+                <p className="muted text-sm">
+                  Se guardará como{" "}
+                  <code>{`{"type":"bearer","token_env":"..."}`}</code>.
+                </p>
+              </div>
+            ) : null}
+            {connectorForm.authKind === "api_key" ? (
+              <div className="auth-kind-panel stack">
                 <div className="grid-2">
                   <label className="field">
                     Nombre de la cabecera
@@ -244,27 +259,119 @@ export function ConnectorsWorkspace() {
                     />
                   </label>
                 </div>
-              ) : null}
-              {connectorForm.authKind === "oauth2" ? (
-                <label className="field">
-                  Client ID
-                  <input
-                    value={connectorForm.authOAuth2ClientId}
-                    onChange={(event) =>
-                      setConnectorForm((prev) => ({
-                        ...prev,
-                        authOAuth2ClientId: event.target.value,
-                      }))
-                    }
-                    placeholder="id-proveedor-oauth"
-                  />
-                </label>
-              ) : null}
-              {connectorForm.authKind === "custom" ? (
+                <p className="muted text-sm">
+                  Recomendado cuando el proveedor espera una cabecera propia en
+                  vez de un bearer token estándar.
+                </p>
+              </div>
+            ) : null}
+            {connectorForm.authKind === "basic" ? (
+              <div className="auth-kind-panel stack">
+                <div className="grid-2">
+                  <label className="field">
+                    Username
+                    <input
+                      value={connectorForm.authBasicUsername}
+                      onChange={(event) =>
+                        setConnectorForm((prev) => ({
+                          ...prev,
+                          authBasicUsername: event.target.value,
+                        }))
+                      }
+                      placeholder="integrations-bot"
+                    />
+                  </label>
+                  <label className="field">
+                    Variable de entorno del password
+                    <input
+                      value={connectorForm.authBasicPasswordEnv}
+                      onChange={(event) =>
+                        setConnectorForm((prev) => ({
+                          ...prev,
+                          authBasicPasswordEnv: event.target.value,
+                        }))
+                      }
+                      placeholder="CRM_BASIC_PASSWORD"
+                    />
+                  </label>
+                </div>
+                <p className="muted text-sm">
+                  Se persistirá como <code>username</code> +{" "}
+                  <code>password_env</code> dentro de <code>auth_config</code>.
+                </p>
+              </div>
+            ) : null}
+            {connectorForm.authKind === "oauth2" ? (
+              <div className="auth-kind-panel stack">
+                <div className="grid-2">
+                  <label className="field">
+                    Client ID
+                    <input
+                      value={connectorForm.authOAuth2ClientId}
+                      onChange={(event) =>
+                        setConnectorForm((prev) => ({
+                          ...prev,
+                          authOAuth2ClientId: event.target.value,
+                        }))
+                      }
+                      placeholder="crm-client-id"
+                    />
+                  </label>
+                  <label className="field">
+                    Secret del cliente (env)
+                    <input
+                      value={connectorForm.authOAuth2ClientSecretEnv}
+                      onChange={(event) =>
+                        setConnectorForm((prev) => ({
+                          ...prev,
+                          authOAuth2ClientSecretEnv: event.target.value,
+                        }))
+                      }
+                      placeholder="CRM_CLIENT_SECRET"
+                    />
+                  </label>
+                </div>
+                <div className="grid-2">
+                  <label className="field">
+                    Token URL
+                    <input
+                      value={connectorForm.authOAuth2TokenUrl}
+                      onChange={(event) =>
+                        setConnectorForm((prev) => ({
+                          ...prev,
+                          authOAuth2TokenUrl: event.target.value,
+                        }))
+                      }
+                      placeholder="https://auth.example.com/oauth/token"
+                    />
+                  </label>
+                  <label className="field">
+                    Scope(s) opcional
+                    <input
+                      value={connectorForm.authOAuth2Scope}
+                      onChange={(event) =>
+                        setConnectorForm((prev) => ({
+                          ...prev,
+                          authOAuth2Scope: event.target.value,
+                        }))
+                      }
+                      placeholder="contacts.read contacts.write"
+                    />
+                  </label>
+                </div>
+                <p className="muted text-sm">
+                  Se guardará como OAuth2 guiado de tipo{" "}
+                  <code>client_credentials</code>, con campos editables en{" "}
+                  <code>auth_config</code>.
+                </p>
+              </div>
+            ) : null}
+            {connectorForm.authKind === "custom" ? (
+              <div className="auth-kind-panel">
                 <label className="field">
                   Auth config (JSON)
                   <textarea
-                    rows={4}
+                    rows={5}
                     value={connectorForm.authCustomJson}
                     onChange={(event) =>
                       setConnectorForm((prev) => ({
@@ -272,11 +379,15 @@ export function ConnectorsWorkspace() {
                         authCustomJson: event.target.value,
                       }))
                     }
-                    placeholder='{"type":"bearer","token_env":"CRM_TOKEN"}'
+                    placeholder='{"type":"oauth2","token_url":"https://...","extra":"..." }'
                   />
                 </label>
-              ) : null}
-            </div>
+                <p className="muted text-sm">
+                  Úsalo solo si el método guiado no cubre tu caso. El backend lo
+                  persistirá como JSON libre.
+                </p>
+              </div>
+            ) : null}
           </div>
           <div className="row">
             <button
@@ -342,22 +453,22 @@ export function ConnectorsWorkspace() {
                   <div className="row spread">
                     <div>
                       <h4>{selectedConnector.base_url}</h4>
-                  <small className="muted">
-                    {summarizeConnectorAuth(selectedConnector.auth_config)}
-                  </small>
+                      <small className="muted">
+                        {summarizeConnectorAuth(selectedConnector.auth_config)}
+                      </small>
                     </div>
                     <div className="row">
                       <button
                         type="button"
-                  onClick={() => {
-                    setEditingConnectorId(selectedConnector.id);
-                    setConnectorForm({
-                      base_url: selectedConnector.base_url || "",
-                      ...parseConnectorAuthForForm(
-                        selectedConnector.auth_config,
-                      ),
-                    });
-                  }}
+                        onClick={() => {
+                          setEditingConnectorId(selectedConnector.id);
+                          setConnectorForm({
+                            base_url: selectedConnector.base_url || "",
+                            ...parseConnectorAuthForForm(
+                              selectedConnector.auth_config,
+                            ),
+                          });
+                        }}
                       >
                         Editar conector
                       </button>
@@ -400,9 +511,9 @@ export function ConnectorsWorkspace() {
                       <thead>
                         <tr>
                           <th>Nombre</th>
-                          <th>Metodo</th>
+                          <th>Método</th>
                           <th>Path</th>
-                          <th>Version schema</th>
+                          <th>Versión del schema</th>
                           <th>Acciones</th>
                         </tr>
                       </thead>
