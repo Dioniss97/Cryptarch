@@ -151,6 +151,19 @@ export function chatFieldsFromInputSchemaJson(raw) {
   });
 }
 
+/** Valor inicial del payload de chat para un campo normalizado. */
+export function initialValueForField(field) {
+  if (field?.type === "boolean") return false;
+  return "";
+}
+
+/** Convierte el valor del formulario al tipo esperado en el payload de ejecución. */
+export function castPayloadValue(field, value) {
+  if (field?.type === "number") return Number(value);
+  if (field?.type === "boolean") return Boolean(value);
+  return value;
+}
+
 export function extractFileName(path) {
   if (!path) return "Documento";
   const normalized = String(path).replaceAll("\\", "/");

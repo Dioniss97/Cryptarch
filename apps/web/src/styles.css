@@ -400,6 +400,18 @@ button.danger {
   grid-template-columns: minmax(220px, 280px) 1fr;
 }
 
+.chat-workspace {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(220px, 280px) 1fr;
+}
+
+@media (max-width: 768px) {
+  .chat-workspace {
+    grid-template-columns: 1fr;
+  }
+}
+
 .connector-list {
   display: grid;
   gap: 8px;
