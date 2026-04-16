@@ -9,6 +9,7 @@ from core.application.action import (
     ConnectorNotFoundError,
     TagNotFoundError,
 )
+from core.domain.action_request_config import RequestConfigValidationError
 from dependencies import CurrentUser, get_db, require_admin
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -94,12 +95,20 @@ def create_action(
             body.path,
             body.name,
             body.request_config,
+            body.input_schema_json,
+            body.input_schema_version,
             tag_ids_str,
             repo,
             connector_repo,
             tag_repo,
         )
         db.commit()
+    except RequestConfigValidationError as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
+        ) from exc
     except ConnectorNotFoundError:
         db.rollback()
         raise HTTPException(
@@ -134,11 +143,19 @@ def update_action(
             body.path,
             body.name,
             body.request_config,
+            body.input_schema_json,
+            body.input_schema_version,
             tag_ids_str,
             repo,
             tag_repo,
         )
         db.commit()
+    except RequestConfigValidationError as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
+        ) from exc
     except ActionNotFoundError:
         db.rollback()
         raise HTTPException(

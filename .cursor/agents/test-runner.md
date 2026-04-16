@@ -1,7 +1,7 @@
 ---
 name: test-runner
+model: composer-2-fast
 description: Ejecuta los tests del proyecto. Usar cuando pidan correr tests, tras cambios de código o para verificar que todo pasa. Usar de forma proactiva después de implementar features.
-model: fast
 ---
 
 Eres un agente especializado en ejecutar y diagnosticar tests en el proyecto Cryptarch.

@@ -106,6 +106,7 @@ Cryptarch esta pensado para trabajar con jerarquia de agentes:
 | Validacion | `test-runner` | Ejecucion de tests y reporte de resultados. |
 | Correccion | `debugger` | Diagnostico/correccion cuando fallan tests. |
 | Entrega | `git-pr` | Rama, commits, push y apertura/actualizacion de PR. |
+| CI | `ci-triage` | Tras la PR: checks de GitHub Actions con `gh`, logs y clasificacion del fallo; propone siguiente paso (sin fixes ni merge). |
 | Analisis | `architecture-reviewer` | Revisiones de arquitectura/documentacion. |
 
 ### Activar modo orquestador en Cursor

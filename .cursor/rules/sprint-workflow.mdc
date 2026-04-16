@@ -5,7 +5,23 @@ alwaysApply: true
 
 # Workflow por tareas (Cursor)
 
-**Casi todo vive en Engram**: estado de sprints y tasks, criterios, siguiente tarea. Familias: `sprints/*`, `tasks/*`, `docs/*`, `knowledge/*`. Los .md de sprints/tasks son referencia o semilla; consultar Engram primero. En Cursor no hay comandos slash; usar lenguaje natural: "task SC-209", "siguiente tarea", "digiere la doc de la API", "guarda este descubrimiento".
+**Flujo hibrido recomendado**: **GitHub Issue -> Engram task -> rama -> PR**.
+
+- **GitHub Issues**: captura, triage y backlog.
+- **Engram**: estado de sprints y tasks, criterios, siguiente tarea. Familias: `sprints/*`, `tasks/*`, `docs/*`, `knowledge/*`.
+- **Ramas**: `task/<id>-slug` para trabajo normal; `docs/<slug>` solo como excepcion documentaria si encaja.
+
+Los .md de sprints/tasks son referencia o semilla; consultar Engram primero. En Cursor no hay comandos slash; usar lenguaje natural: "task SC-209", "siguiente tarea", "digiere la doc de la API", "guarda este descubrimiento".
+
+## Issue / backlog (captura y triage)
+
+Cuando llegue una idea, bug, hallazgo o nota sin task ejecutable:
+
+1. Buscar si ya existe un GitHub Issue equivalente.
+2. Si hay que dividir, redactar, etiquetar, priorizar o crear issues, delegar en **issue-triage**.
+3. Si el hallazgo mezcla contrato, validacion, persistencia o integracion con UX, formularios, estados o rendering, dividirlo en **issue paraguas + tasks hijas** o en **varias tasks separadas por capa**.
+4. Si el item pasa a ejecucion, crear o actualizar `tasks/<id>` en Engram y enlazar el issue. Si hubo division front/back, documentarla en Engram con dependencias y alcance de cada task.
+5. Mantener claro que el issue captura/triagea y la task ejecuta.
 
 ## Task (iniciar una tarea)
 
@@ -15,19 +31,22 @@ Cuando pidan **empezar una tarea** o mencionen un task ID (ej. "task SC-209", "t
 2. Buscar en Engram `topic_key`: `tasks/<task_id>`. Si no existe, crear memoria con contexto de la tarea y `Status: pending` (la fuente de verdad es Engram).
 3. **Poner en la memoria** `Status: in_progress` (actualizar la misma observación con topic_key).
 4. Recuperar contexto útil desde Engram: `sprints/*`, `tasks/*`, `docs/*`, `knowledge/*` (mem_search, luego mem_get_observation si hace falta).
-5. Dar un resumen técnico breve antes de empezar.
-6. Durante el trabajo: guardar descubrimientos reutilizables en `knowledge/<topic>`.
-7. Al terminar: tests pasando; delega el commit/PR a `git-pr` (no ejecutes `git` a mano). Luego actualizar `tasks/<task_id>` con What / Why / Where / Learned y **Status: done**. Opcionalmente actualizar `sprints/sprint-XX` si el sprint queda completo.
+5. **Antes de implementar**, delegar en `git-pr` la creación o selección de la rama `task/<id>-slug` (o `docs/<slug>` si aplica). No empezar una task de ejecución sin rama preparada.
+6. Dar un resumen técnico breve antes de empezar.
+7. Durante el trabajo: guardar descubrimientos reutilizables en `knowledge/<topic>`.
+8. Al terminar trabajo local: tests pasando; delega el commit/PR a `git-pr` (no ejecutes `git` a mano). Tras la PR, delega **`ci-triage`** para revisar checks de GitHub Actions. Solo cuando los checks **relevantes** esten **verdes** (o la task quede **`blocked`** con motivo explicito en Engram), actualizar `tasks/<task_id>` con What / Why / Where / Learned y **Status: done** o **blocked**. No marcar **done** solo por tener PR abierta. Opcionalmente actualizar `sprints/sprint-XX` si el sprint queda completo.
 
-**Orquestador y subagentes:** El agente principal orquesta; **no implementa código ni ejecuta tests ni git a mano**. Ver `docs/architecture/orchestrator-flow.md`. Flujo Git por tarea (rama → trabajo → test → debug si falla → test de nuevo → commits legibles → push → PR): `docs/architecture/git-workflow.md`. Subagentes a usar:
+**Orquestador y subagentes:** El agente principal orquesta; **no implementa codigo ni ejecuta tests ni git a mano**. Ver `docs/architecture/orchestrator-flow.md`. Flujo Git por tarea (`issue -> task -> branch -> PR`): `docs/architecture/git-workflow.md`. Subagentes a usar:
+- **issue-triage**: para backlog/triage, convertir notas o hallazgos en issues, proponer labels/prioridad y crear issues con `gh` solo si se pide explicitamente.
 - **ai-worker**: **obligatorio para implementación**: cualquier cambio de código (feature, refactor, CRUD, integración) se delega en ai-worker con la misión y el contexto (topic_key, ficheros, criterios). El orquestador no escribe el código.
 - **test-runner**: ejecutar tests. Si fallan, reportar; el orquestador invocará al **debugger** y luego relanzará test-runner hasta que pasen.
-- **git-pr**: ramas por tarea (`task/<id>`), Conventional Commits, push y PRs.
+- **git-pr**: ramas por tarea (`task/<id>-slug`) o `docs/<slug>` como excepcion doc-only, Conventional Commits, push y PRs a `develop`.
+- **ci-triage**: tras PR, consultar checks de Actions con `gh`, leer logs si fallan, clasificar y proponer siguiente paso; repetir tras fix/push. No escribe Engram.
 - **debugger**: cuando test-runner reporte fallos, pasarle el contexto para que diagnostique y corrija.
 
-Aplicar la skill del ámbito: backend/API → `fastapi-tdd`, admin React → `react-admin-slice`, ingestión/worker → `vectorization-pipeline`, tras implementar → `docs-sync`. Memoria → `engram-memory`.
+Aplicar la skill del ambito: backlog/triage → `issue-backlog`, backend/API -> `fastapi-tdd`, admin React -> `react-admin-slice`, ingestion/worker -> `vectorization-pipeline`, tras implementar -> `docs-sync`. Memoria -> `engram-memory`.
 
-**Flujo autónomo:** Si piden "siguiente tarea" o el agente gestiona trabajo sin PR concreto: buscar en Engram "Status: pending" (o "tasks pending"); elegir una tarea; ponerla en `in_progress`; implementar → tests → commit → PR → marcar `done`. Opcionalmente actualizar el sprint. El humano solo revisa PRs en GitHub.
+**Flujo autonomo:** Si piden "siguiente tarea" o el agente gestiona trabajo sin PR concreto: buscar en Engram "Status: pending" (o "tasks pending"); elegir una tarea; ponerla en `in_progress`; crear/usar rama con `git-pr`; implementar -> tests -> commit -> PR -> **`ci-triage`** hasta checks verdes -> entonces marcar `done` (o `blocked` si aplica). Opcionalmente actualizar el sprint. El humano solo revisa PRs en GitHub.
 
 ## Doc (digerir documentación)
 

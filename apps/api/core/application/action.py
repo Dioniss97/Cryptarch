@@ -3,6 +3,9 @@ Action use cases. Orchestrate ActionRepository, ConnectorRepository, TagReposito
 Validate connector_id and tag_ids in tenant. No Session or DB in this module; ports are injected.
 """
 
+from typing import Any
+
+from core.domain.action_request_config import validate_and_normalize_request_config
 from core.domain.models import Action
 from core.ports.action_repository import ActionRepository
 from core.ports.connector_repository import ConnectorRepository
@@ -19,6 +22,10 @@ class ConnectorNotFoundError(Exception):
 
 class TagNotFoundError(Exception):
     """Raised when one or more tag_ids do not exist or do not belong to the tenant."""
+
+
+def _normalize_method(method: str) -> str:
+    return (method or "").strip().upper()
 
 
 def _validate_tag_ids_in_tenant(
@@ -58,6 +65,8 @@ def create_action(
     path: str,
     name: str | None,
     request_config: dict | None,
+    input_schema_json: Any | None,
+    input_schema_version: str | None,
     tag_ids: list[str],
     repo: ActionRepository,
     connector_repo: ConnectorRepository,
@@ -68,13 +77,17 @@ def create_action(
     if not connector:
         raise ConnectorNotFoundError("Connector not found")
     _validate_tag_ids_in_tenant(tag_ids, tenant_id, tag_repo)
+    method_norm = _normalize_method(method)
+    rc_norm = validate_and_normalize_request_config(method_norm, request_config)
     action = Action(
         tenant_id=tenant_id,
         connector_id=connector.id,
-        method=method,
+        method=method_norm,
         path=path,
         name=name,
-        request_config=request_config,
+        request_config=rc_norm,
+        input_schema_json=input_schema_json,
+        input_schema_version=input_schema_version,
     )
     return repo.add(action, tag_ids)
 
@@ -86,6 +99,8 @@ def update_action(
     path: str | None,
     name: str | None,
     request_config: dict | None,
+    input_schema_json: Any | None,
+    input_schema_version: str | None,
     tag_ids: list[str] | None,
     repo: ActionRepository,
     tag_repo: TagRepository,
@@ -97,13 +112,25 @@ def update_action(
     if tag_ids is not None:
         _validate_tag_ids_in_tenant(tag_ids, tenant_id, tag_repo)
     if method is not None:
-        action.method = method
+        action.method = _normalize_method(method)
     if path is not None:
         action.path = path
     if name is not None:
         action.name = name
     if request_config is not None:
-        action.request_config = request_config
+        action.request_config = validate_and_normalize_request_config(
+            action.method,
+            request_config,
+        )
+    elif method is not None:
+        action.request_config = validate_and_normalize_request_config(
+            action.method,
+            action.request_config,
+        )
+    if input_schema_json is not None:
+        action.input_schema_json = input_schema_json
+    if input_schema_version is not None:
+        action.input_schema_version = input_schema_version
     return repo.save(action, tag_ids)
 
 

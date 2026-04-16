@@ -19,7 +19,10 @@ Engram es la **piedra angular** de la organización de los agentes: concentra de
    - Invoca al subagente pasando **referencias** (IDs de observación, topic_keys) e instrucciones concretas.
    - El subagente consulta Engram con esas referencias y ejecuta la misión.
 
-## Flujo típico
+5. **Issues y tasks no son lo mismo**  
+   Los **GitHub Issues** sirven para captura, triage y backlog. Las **tasks en Engram** (`tasks/<id>`) gobiernan la ejecucion. El paso de issue a task lo hace el orquestador; los subagentes pueden ayudar a preparar el material, pero no crean ese estado por su cuenta.
+
+## Flujo tipico
 
 ```
 Orquestador
@@ -39,10 +42,12 @@ Según el tipo de subagente:
 
 | Subagente   | Qué escribir en Engram antes de invocar | Referencia a pasar |
 |------------|------------------------------------------|--------------------|
+| **issue-triage** | Si el issue va a promocionarse a ejecucion, preparar o localizar la task destino y las reglas de enlazado. | Opcional: `tasks/<task_id>` si hay task existente; si no, basta con la consigna de backlog/issue. |
 | **ai-worker** | Contexto de la tarea: objetivo, criterios, ficheros, decisiones ya tomadas. Actualizar `tasks/<id>` con lo que el worker debe saber. | `tasks/<task_id>` o observation_id de la tarea; opcionalmente `docs/*` o `knowledge/*` relevantes. |
 | **debugger**  | Resumen del fallo: fichero, test que falla, mensaje de error, traza relevante. Puede ser una nueva observación en `knowledge/` o una actualización en `tasks/<id>`. | observation_id del “brief del fallo” o topic_key (ej. `tasks/SC-209`) para que lea estado + criterios. |
 | **test-runner** | Normalmente no hace falta memoria nueva; el orquestador indica scope (suite, fichero, test). Si el scope depende de una tarea, puede referenciar `tasks/<id>`. | Opcional: topic_key de la tarea para contexto. |
-| **git-pr**     | Tras tests OK, la tarea ya está en Engram. Referencia a `tasks/<id>` para título/descripción del PR. | `tasks/<task_id>` o observation_id. |
+| **git-pr**     | Tras tests OK, la tarea ya esta en Engram. Referencia a `tasks/<id>` para titulo/descripción del PR y enlaces al issue si existe. | `tasks/<task_id>` o observation_id. |
+| **ci-triage**  | Tras abrir o actualizar la PR: no suele requerir memoria nueva; el orquestador indica **numero o URL de PR** (y rama head si aplica). Opcional: `tasks/<id>` solo como contexto de lectura si el subagente tiene Engram; **ci-triage no escribe** Engram. | Numero/URL de PR; opcional `tasks/<task_id>` para criterios; enlace al ultimo push o run si lo tiene el orquestador. |
 
 ## Formato de referencias al invocar un subagente
 
@@ -54,12 +59,17 @@ Incluir en el prompt de invocación algo como:
 
 Así el subagente limita sus lecturas a lo necesario y no arrastra todo el historial.
 
+Para backlog/triage tambien puede usarse una instruccion como:
+
+- **Por issue**: “Trabaja sobre el issue `#123`, propone labels/prioridad y devuelve los datos minimos para crear o actualizar `tasks/SC-209`.”
+
 ## Beneficios
 
 - **Menos tokens**: el contexto pesado vive en Engram; el prompt al subagente son instrucciones + referencias.
 - **Sin pérdida por compactación**: decisiones y hallazgos quedan en memoria persistente.
 - **Trazabilidad**: cada decisión o brief de fallo tiene una observación; se puede citar en futuras tareas.
 - **Reparto de carga**: el orquestador sintetiza y escribe; los subagentes ejecutan con el mínimo contexto necesario.
+- **Separacion limpia de backlog y ejecucion**: GitHub conserva la conversacion del issue y Engram conserva el estado operativo de la task.
 
 ## Arquitectura, patrones y estructura
 
@@ -82,10 +92,12 @@ Así se mantiene un único escritor y la arquitectura no se fragmenta entre agen
 | Agente       | Engram (escritura) | Engram (lectura) | Rol |
 |-------------|--------------------|-------------------|-----|
 | Orquestador | ✅ mem_save, mem_update, mem_delete | ✅ mem_search, mem_get_observation, mem_timeline, mem_context | Coordina, contrasta con docs/Engram, escribe contexto y estado. **Documenta arquitectura y patrones.** |
+| issue-triage | ❌ | ✅ Opcional, solo si el orquestador le pasa referencias | Convierte notas o hallazgos en issues y devuelve enlaces/metadata para que el orquestador gestione la task. |
 | ai-worker   | ❌ | ✅ Solo con referencias dadas por orquestador | Implementa; lee tarea y criterios por ID/key. |
 | debugger    | ❌ | ✅ Solo con referencias dadas por orquestador | Corrige fallos; lee brief del fallo por ID/key. |
 | test-runner | ❌ | ✅ Opcional (scope o task ref) | Ejecuta tests; reporta. |
-| git-pr      | ❌ | ✅ Opcional (task ref para PR) | Rama, commit, push, PR. |
+| git-pr      | ❌ | ✅ Opcional (task ref para PR) | Rama `task/<id>-slug`, commit, push, PR a `develop`. |
+| ci-triage   | ❌ | ✅ Opcional (`tasks/<id>` como contexto de lectura si aplica) | Consulta checks y logs de CI de la PR con `gh`; clasifica fallos y recomienda `test-runner`, `debugger`, `git-pr` o bloqueo; no aplica fixes. |
 | architecture-reviewer (opcional) | ❌ | ✅ Solo con referencias dadas por orquestador | Analiza estructura/patrones y reporta; el orquestador documenta y decide. |
 
-Este protocolo se complementa con `orchestrator-flow.md` (flujo operativo), `git-workflow.md` (ciclo por tarea: rama → trabajo → test → debug → commits → push → PR) y con las reglas/skills de Engram en `.cursor/`.
+Este protocolo se complementa con `orchestrator-flow.md` (flujo operativo), `git-workflow.md` (ciclo `issue -> task -> branch -> PR`) y con las reglas/skills de Engram en `.cursor/`.

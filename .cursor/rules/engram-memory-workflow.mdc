@@ -40,7 +40,7 @@ This project uses Engram as persistent development memory. **Casi todo vive en E
 **When finishing a task**
 
 - Update the same `tasks/<task_id>` with: What, Why, Where, Learned (and outcome).
-- Set **Status** (see below) to `done` when tests pass, code is committed and a PR is opened — so the agent (or a subagent) can work autonomously and the human only reviews PRs.
+- Set **Status** to `done` only when **local tests have passed**, changes are **committed**, a **PR is open**, and **relevant GitHub Actions checks on that PR are green** (or the human explicitly accepts closure). Opening a PR alone is **not** enough for `done`. If CI cannot pass without human/infra, use **`blocked`** with a short reason until resolved or agreed.
 
 ## Task and sprint status (autonomous workflow)
 
@@ -51,13 +51,14 @@ Every task memory (`tasks/<task_id>`) and every sprint memory (`sprints/sprint-X
 - **pending**: not started.
 - **in_progress**: someone is working on it (agent or human).
 - **blocked**: blocked; add a short reason in the same memory if useful.
-- **done**: tests passed, changes committed, PR opened (or merged); no further work until next task.
+- **done**: local tests passed, changes committed, PR open (or merged), **and** relevant CI checks on the PR are green (or merged after green); no further work until the next task.
+- **blocked**: waiting on permissions, secrets, infra, or an explicit human decision documented in the same memory; not `done`.
 
 **When to set status**
 
 - Start task → update `tasks/<id>` with `Status: in_progress`.
-- Blocked → `Status: blocked` (and note why).
-- Tests pass + commit + PR opened → `Status: done`; optionally update `sprints/sprint-XX` (e.g. move sprint to `in_progress` when first task starts, or to `done` when all its tasks are done).
+- Blocked → `Status: blocked` (and note why): e.g. CI requires org admin, secret missing, cannot reproduce without human input.
+- Tests pass + commit + PR opened + **relevant CI checks green on that PR** (orquestador validates via **ci-triage**) → `Status: done`; optionally update `sprints/sprint-XX` (e.g. move sprint to `in_progress` when first task starts, or to `done` when all its tasks are done).
 
 **How to find work in Engram** (consult Engram first, not the .md files)
 
@@ -66,7 +67,7 @@ Every task memory (`tasks/<task_id>`) and every sprint memory (`sprints/sprint-X
 - Blocked: "Status: blocked" or "sprint blocked".
 - Sprints: "sprints sprint-02" or "Status: in_progress sprint". Sprint memory holds goal, criteria, and task list.
 
-No separate "checklist" type: status lives inside the same observation content for `tasks/<id>` and `sprints/sprint-XX`. The agent can be autonomous: pick pending task → set in_progress → implement → tests → commit → PR → set done → optionally update sprint; human reviews PRs on GitHub.
+No separate "checklist" type: status lives inside the same observation content for `tasks/<id>` and `sprints/sprint-XX`. The agent can be autonomous: pick pending task → set in_progress → implement → tests → commit → PR → **verify CI** (`ci-triage`) → set done or blocked → optionally update sprint; human reviews PRs on GitHub.
 
 ## Memory format
 
