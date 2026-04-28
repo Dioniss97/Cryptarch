@@ -79,6 +79,19 @@ class _ActionRepoStub:
     def get_action_tag_ids(self, action_id: str) -> list[str]:
         return []
 
+    def list_by_ids(self, action_ids: list[str], tenant_id: str) -> list[Action]:
+        out: list[Action] = []
+        for aid in action_ids:
+            a = self.get_by_id(aid, tenant_id)
+            if a is not None:
+                out.append(a)
+        return out
+
+    def list_action_tag_ids_for_actions(
+        self, action_ids: list[str]
+    ) -> dict[str, list[str]]:
+        return {aid: self.get_action_tag_ids(aid) for aid in action_ids}
+
     def add(self, action: Action, tag_ids: list[str]) -> Action:
         action.id = action.id or _id()
         self.items[action.id] = action

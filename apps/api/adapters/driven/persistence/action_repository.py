@@ -86,6 +86,60 @@ class ActionRepositoryImpl(ActionRepository):
             result.append(str(u) if u else str(tag_id))
         return result
 
+    def list_by_ids(self, action_ids: list[str], tenant_id: str) -> list[Action]:
+        tid = parse_uuid(tenant_id)
+        if tid is None or not action_ids:
+            return []
+        variants: set[str] = set()
+        for raw in action_ids:
+            aid = parse_uuid(raw)
+            if aid is None:
+                continue
+            variants.add(aid.hex)
+            variants.add(str(aid))
+        if not variants:
+            return []
+        q = (
+            self._session.query(ActionOrm)
+            .filter(
+                or_(
+                    ActionOrm.tenant_id == tid.hex,
+                    ActionOrm.tenant_id == str(tid),
+                )
+            )
+            .filter(ActionOrm.id.in_(list(variants)))
+        )
+        return [_orm_to_domain(a) for a in q.all()]
+
+    def list_action_tag_ids_for_actions(
+        self, action_ids: list[str]
+    ) -> dict[str, list[str]]:
+        if not action_ids:
+            return {}
+        variants: set[str] = set()
+        for raw in action_ids:
+            aid = parse_uuid(raw)
+            if aid is None:
+                continue
+            variants.add(aid.hex)
+            variants.add(str(aid))
+        if not variants:
+            return {}
+        rows = (
+            self._session.query(ActionTagOrm.action_id, ActionTagOrm.tag_id)
+            .filter(ActionTagOrm.action_id.in_(list(variants)))
+            .order_by(ActionTagOrm.action_id, ActionTagOrm.tag_id)
+            .all()
+        )
+        result: dict[str, list[str]] = {}
+        for action_id_raw, tag_id_raw in rows:
+            ak = parse_uuid(action_id_raw) if action_id_raw else None
+            action_key = str(ak) if ak else str(action_id_raw)
+            tk = parse_uuid(tag_id_raw) if tag_id_raw else None
+            tag_str = str(tk) if tk else str(tag_id_raw)
+            result.setdefault(action_key, []).append(tag_str)
+        return result
+
     def add(self, action: Action, tag_ids: list[str]) -> Action:
         orm = ActionOrm(
             tenant_id=action.tenant_id,

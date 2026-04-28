@@ -2,6 +2,7 @@
 
 from typing import Annotated
 
+from adapters.driven.persistence.db import get_db
 from config import JWT_ALGORITHM, JWT_SECRET
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -11,6 +12,8 @@ from shared_contract import ROLE_ADMIN
 
 # So Swagger UI shows "Authorize" and sends Bearer token on every request
 _http_bearer = HTTPBearer(auto_error=False)
+
+__all__ = ["CurrentUser", "get_current_user", "get_db", "require_admin"]
 
 
 class CurrentUser(BaseModel):
