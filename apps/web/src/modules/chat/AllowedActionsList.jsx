@@ -1,10 +1,19 @@
-function actionSubtitle(action) {
+function formatActionMeta(action) {
+  const method =
+    typeof action?.method === "string"
+      ? action.method.trim().toUpperCase()
+      : "";
+  const pathStr = typeof action?.path === "string" ? action.path.trim() : "";
+  if (!method && !pathStr) return null;
+  return [method, pathStr].filter(Boolean).join(" ");
+}
+
+function schemaDescription(action) {
   const desc =
     typeof action?.input_schema_json?.description === "string"
       ? action.input_schema_json.description.trim()
       : "";
-  if (desc) return desc;
-  return null;
+  return desc || null;
 }
 
 export function AllowedActionsList({ actions, selectedId, onSelect }) {
@@ -13,7 +22,8 @@ export function AllowedActionsList({ actions, selectedId, onSelect }) {
       {actions.map((action) => {
         const id = action.id;
         const selected = id === selectedId;
-        const subtitle = actionSubtitle(action);
+        const meta = formatActionMeta(action);
+        const description = schemaDescription(action);
         return (
           <button
             key={id}
@@ -26,9 +36,10 @@ export function AllowedActionsList({ actions, selectedId, onSelect }) {
             <strong style={{ fontSize: 14 }}>
               {action.name?.trim() || "Acción sin nombre"}
             </strong>
-            {subtitle ? (
+            {meta ? <span className="allowed-action-meta">{meta}</span> : null}
+            {description ? (
               <span className="text-sm muted" style={{ lineHeight: 1.35 }}>
-                {subtitle}
+                {description}
               </span>
             ) : null}
           </button>

@@ -430,6 +430,15 @@ button.danger {
   background: #eef2ff;
 }
 
+.allowed-action-meta {
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    monospace;
+  font-size: 0.75rem;
+  color: #64748b;
+  line-height: 1.35;
+}
+
 .panel.subtle {
   background: #fbfcff;
 }
