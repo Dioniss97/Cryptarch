@@ -150,6 +150,9 @@ def test_user_sees_only_permitted_actions(
     assert ids == {str(a1.id).replace("-", "")}
     assert str(a2.id).replace("-", "") not in ids
     assert str(a3.id).replace("-", "") not in ids
+    assert len(data) == 1
+    assert data[0]["method"] == "GET"
+    assert data[0]["path"] == "/one"
 
 
 def test_user_with_no_groups_sees_empty_list(
@@ -379,6 +382,8 @@ def test_response_does_not_expose_request_config_or_credentials(
     payload = r.json()
     assert len(payload) == 1
     body = payload[0]
+    assert body["method"] == "POST"
+    assert body["path"] == "/exec"
     assert "request_config" not in body
     assert "auth_config" not in body
     assert "base_url" not in body

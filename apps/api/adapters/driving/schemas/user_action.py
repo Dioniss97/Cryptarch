@@ -12,6 +12,8 @@ def permitted_action_summary_to_response(row: PermittedActionSummary) -> dict[st
         "id": _canonical_str(row.id),
         "name": row.name,
         "connector_id": _canonical_str(row.connector_id),
+        "method": row.method,
+        "path": row.path,
         "input_schema_json": row.input_schema_json,
         "input_schema_version": row.input_schema_version,
         "tag_ids": [_canonical_str(t) for t in row.tag_ids],

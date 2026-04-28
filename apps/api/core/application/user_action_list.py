@@ -29,6 +29,8 @@ class PermittedActionSummary:
     id: str
     name: str | None
     connector_id: str
+    method: str
+    path: str
     input_schema_json: Any | None
     input_schema_version: str | None
     tag_ids: list[str]
@@ -66,6 +68,8 @@ def list_permitted_actions_for_user(
                 id=action.id or aid,
                 name=action.name,
                 connector_id=action.connector_id,
+                method=action.method,
+                path=action.path,
                 input_schema_json=action.input_schema_json,
                 input_schema_version=action.input_schema_version,
                 tag_ids=tag_ids,
