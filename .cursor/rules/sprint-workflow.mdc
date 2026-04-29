@@ -1,52 +1,54 @@
 ---
-description: Workflow por tareas y Engram — casi todo en Engram; uso de skills por ámbito
+description: Workflow por Jira, Confluence, Engram y GitHub; uso de skills por ámbito
 alwaysApply: true
 ---
 
 # Workflow por tareas (Cursor)
 
-**Flujo hibrido recomendado**: **GitHub Issue -> Engram task -> rama -> PR**.
+**Fuentes de verdad**:
 
-- **GitHub Issues**: captura, triage y backlog.
-- **Engram**: estado de sprints y tasks, criterios, siguiente tarea. Familias: `sprints/*`, `tasks/*`, `docs/*`, `knowledge/*`.
-- **Ramas**: `task/<id>-slug` para trabajo normal; `docs/<slug>` solo como excepcion documentaria si encaja.
+- **Confluence**: futura zona cero de verdad no técnica: visión, producto, dominio, MVP, flujos y decisiones de negocio.
+- **Jira (`CRYPT`)**: backlog y ejecución: épicas, historias, tareas, bugs, sprints, estados, prioridades y trabajo para agentes.
+- **Engram**: memoria operativa de agentes: decisiones, convenciones, IDs, sesiones, gotchas y resúmenes de ejecución.
+- **GitHub**: código, ramas, PRs, reviews y CI. **No usar GitHub Issues como backlog de producto**.
+- **Ramas**: `task/CRYPT-123-slug` para trabajo normal; `docs/<slug>` solo como excepcion documentaria si encaja.
 
-Los .md de sprints/tasks son referencia o semilla; consultar Engram primero. En Cursor no hay comandos slash; usar lenguaje natural: "task SC-209", "siguiente tarea", "digiere la doc de la API", "guarda este descubrimiento".
+Los `.md` de sprints antiguos fueron experimentales; no son fuente de planificación. En Cursor no hay comandos slash; usar lenguaje natural: "tarea CRYPT-123", "siguiente tarea", "digiere la doc de la API", "guarda este descubrimiento".
 
-## Issue / backlog (captura y triage)
+## Backlog (captura y triage)
 
 Cuando llegue una idea, bug, hallazgo o nota sin task ejecutable:
 
-1. Buscar si ya existe un GitHub Issue equivalente.
+1. Buscar si ya existe un issue equivalente en **Jira (`CRYPT`)**.
 2. Si hay que dividir, redactar, etiquetar, priorizar o crear issues, delegar en **issue-triage**.
 3. Si el hallazgo mezcla contrato, validacion, persistencia o integracion con UX, formularios, estados o rendering, dividirlo en **issue paraguas + tasks hijas** o en **varias tasks separadas por capa**.
-4. Si el item pasa a ejecucion, crear o actualizar `tasks/<id>` en Engram y enlazar el issue. Si hubo division front/back, documentarla en Engram con dependencias y alcance de cada task.
-5. Mantener claro que el issue captura/triagea y la task ejecuta.
+4. Si el item pasa a ejecucion, crear o actualizar memoria operativa en Engram con `topic_key: tasks/<jira_key>` y enlazar `CRYPT-*`. Si hubo division front/back, documentarla en Engram con dependencias y alcance de cada task.
+5. Mantener claro que Jira gobierna backlog/estado y Engram conserva contexto operativo para agentes.
 
 ## Task (iniciar una tarea)
 
-Cuando pidan **empezar una tarea** o mencionen un task ID (ej. "task SC-209", "tarea SC-209"):
+Cuando pidan **empezar una tarea** o mencionen un task ID (ej. "task CRYPT-9", "tarea CRYPT-9"):
 
-1. Pedir el Jira/task ID si no lo han dado.
-2. Buscar en Engram `topic_key`: `tasks/<task_id>`. Si no existe, crear memoria con contexto de la tarea y `Status: pending` (la fuente de verdad es Engram).
+1. Pedir el Jira ID (`CRYPT-*`) si no lo han dado.
+2. Leer la tarjeta en Jira y buscar en Engram `topic_key`: `tasks/<jira_key>`. Si no existe, crear memoria operativa con contexto de la tarea y `Status: pending`.
 3. **Poner en la memoria** `Status: in_progress` (actualizar la misma observación con topic_key).
 4. Recuperar contexto útil desde Engram: `sprints/*`, `tasks/*`, `docs/*`, `knowledge/*` (mem_search, luego mem_get_observation si hace falta).
-5. **Antes de implementar**, delegar en `git-pr` la creación o selección de la rama `task/<id>-slug` (o `docs/<slug>` si aplica). No empezar una task de ejecución sin rama preparada.
+5. **Antes de implementar**, delegar en `git-pr` la creación o selección de la rama `task/<jira_key>-slug` (o `docs/<slug>` si aplica). No empezar una task de ejecución sin rama preparada.
 6. Dar un resumen técnico breve antes de empezar.
 7. Durante el trabajo: guardar descubrimientos reutilizables en `knowledge/<topic>`.
-8. Al terminar trabajo local: tests pasando; delega el commit/PR a `git-pr` (no ejecutes `git` a mano). Tras la PR, delega **`ci-triage`** para revisar checks de GitHub Actions. Solo cuando los checks **relevantes** esten **verdes** (o la task quede **`blocked`** con motivo explicito en Engram), actualizar `tasks/<task_id>` con What / Why / Where / Learned y **Status: done** o **blocked**. No marcar **done** solo por tener PR abierta. Opcionalmente actualizar `sprints/sprint-XX` si el sprint queda completo.
+8. Al terminar trabajo local: tests pasando; delega el commit/PR a `git-pr` (no ejecutes `git` a mano). Tras la PR, delega **`ci-triage`** para revisar checks de GitHub Actions. Solo cuando los checks **relevantes** esten **verdes** (o la task quede **`blocked`** con motivo explicito), actualizar Jira y Engram con What / Why / Where / Learned y **Status: done** o **blocked**. No marcar **done** solo por tener PR abierta.
 
-**Orquestador y subagentes:** El agente principal orquesta; **no implementa codigo ni ejecuta tests ni git a mano**. Ver `docs/architecture/orchestrator-flow.md`. Flujo Git por tarea (`issue -> task -> branch -> PR`): `docs/architecture/git-workflow.md`. Subagentes a usar:
-- **issue-triage**: para backlog/triage, convertir notas o hallazgos en issues, proponer labels/prioridad y crear issues con `gh` solo si se pide explicitamente.
+**Orquestador y subagentes:** El agente principal orquesta; **no implementa codigo ni ejecuta tests ni git a mano**. Flujo por tarea: `Jira CRYPT-* -> Engram contexto operativo -> branch -> PR -> CI`. Subagentes a usar:
+- **issue-triage**: para backlog/triage, convertir notas o hallazgos en issues de Jira, proponer labels/prioridad y crear/editar Jira con MCP cuando se pida.
 - **ai-worker**: **obligatorio para implementación**: cualquier cambio de código (feature, refactor, CRUD, integración) se delega en ai-worker con la misión y el contexto (topic_key, ficheros, criterios). El orquestador no escribe el código.
 - **test-runner**: ejecutar tests. Si fallan, reportar; el orquestador invocará al **debugger** y luego relanzará test-runner hasta que pasen.
-- **git-pr**: ramas por tarea (`task/<id>-slug`) o `docs/<slug>` como excepcion doc-only, Conventional Commits, push y PRs a `develop`.
+- **git-pr**: ramas por tarea (`task/CRYPT-123-slug`) o `docs/<slug>` como excepcion doc-only, Conventional Commits, push y PRs a `develop`.
 - **ci-triage**: tras PR, consultar checks de Actions con `gh`, leer logs si fallan, clasificar y proponer siguiente paso; repetir tras fix/push. No escribe Engram.
 - **debugger**: cuando test-runner reporte fallos, pasarle el contexto para que diagnostique y corrija.
 
 Aplicar la skill del ambito: backlog/triage → `issue-backlog`, backend/API -> `fastapi-tdd`, admin React -> `react-admin-slice`, ingestion/worker -> `vectorization-pipeline`, tras implementar -> `docs-sync`. Memoria -> `engram-memory`.
 
-**Flujo autonomo:** Si piden "siguiente tarea" o el agente gestiona trabajo sin PR concreto: buscar en Engram "Status: pending" (o "tasks pending"); elegir una tarea; ponerla en `in_progress`; crear/usar rama con `git-pr`; implementar -> tests -> commit -> PR -> **`ci-triage`** hasta checks verdes -> entonces marcar `done` (o `blocked` si aplica). Opcionalmente actualizar el sprint. El humano solo revisa PRs en GitHub.
+**Flujo autonomo:** Si piden "siguiente tarea" o el agente gestiona trabajo sin PR concreto: buscar en Jira tarjetas `Ready for Agent` o `refinamiento` priorizadas; recuperar/crear contexto Engram; poner Jira/Engram en progreso; crear/usar rama con `git-pr`; implementar -> tests -> commit -> PR -> **`ci-triage`** hasta checks verdes -> entonces marcar `done` (o `blocked` si aplica). El humano solo revisa PRs en GitHub.
 
 ## Doc (digerir documentación)
 
@@ -69,12 +71,12 @@ Cuando aparezca un **descubrimiento técnico** reutilizable (bug, patrón, gotch
 
 Si piden "siguiente sprint" o "primeras tareas del sprint 02":
 
-1. Buscar en Engram "Status: pending" o "sprints sprint-02" para ver qué hay pendiente o en progreso.
-2. Leer `docs/sprints/tasks.md` y el sprint correspondiente.
-3. Proponer la siguiente tarea pendiente (o crearla en Engram con `tasks/<id>` y `Status: in_progress`).
+1. Consultar el sprint real en Jira (`CRYPT`), no los `.md` antiguos.
+2. Revisar tarjetas del sprint y sus estados/prioridades.
+3. Proponer la siguiente tarea pendiente o candidata a `Ready for Agent`.
 4. Seguir el flujo Task anterior; al marcar una tarea `done`, opcionalmente actualizar `sprints/sprint-XX`.
 
-Los ficheros `docs/sprints/sprint-*.md` siguen existiendo como referencia de alcance y criterios de aceptación. El estado (pending/in_progress/blocked/done) vive en Engram en cada `tasks/<id>` y opcionalmente en `sprints/sprint-XX`.
+Los ficheros `docs/sprints/sprint-*.md` son históricos/experimentales salvo instrucción explícita. El estado de planificación vive en Jira; Engram guarda memoria operativa.
 
 ## Auditar un sprint o tarea (opcional)
 

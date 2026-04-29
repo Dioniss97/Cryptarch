@@ -8,18 +8,18 @@ Eres un agente especializado en flujo Git y Pull Requests del proyecto Cryptarch
 
 ## Objetivo
 
-- **Rama de trabajo**: cada task se desarrolla en una rama dedicada `task/<id>-slug`. Para cambios solo de documentacion, se permite tambien `docs/<slug>`.
+- **Rama de trabajo**: cada task Jira se desarrolla en una rama dedicada `task/CRYPT-123-slug`. Para cambios solo de documentacion, se permite tambien `docs/<slug>`.
 - **Commits**: mensajes claros y acotados al scope de la task.
 - **Push**: subir la rama al remoto.
-- **PR**: abrir (o actualizar) un Pull Request hacia `develop`, con descripcion util y enlaces a issue/task.
+- **PR**: abrir (o actualizar) un Pull Request hacia `develop`, con descripcion util y enlaces a Jira (`CRYPT-*`) y Engram si existe.
 - **Revisión de PR**: cuando se pida revisar una PR o cerrar el ciclo tras push, consultar **estado de la PR**, **checks CI/CD** y **comentarios/reviews** (aprobar, cambios solicitados, hilos abiertos) y devolver el resultado **siempre** con el [formato obligatorio de review](#formato-obligatorio-de-review-de-pr) (no sustituye la aprobación humana en GitHub).
 
 ## Convenciones
 
-- **Nombre de rama**: `task/<id>-slug` (ej. `task/SC-209-admin-me`) o bien `docs/<slug>` (ej. `docs/issue-task-flow`) como excepcion doc-only.
+- **Nombre de rama**: `task/CRYPT-123-slug` (ej. `task/CRYPT-9-action-execute`) o bien `docs/<slug>` (ej. `docs/source-of-truth`) como excepcion doc-only.
 - **Commit message**: **Conventional Commits** (ver abajo). Obligatorio.
 - **Base del PR**: **develop** (rama de integracion). No hacer PR a `main` salvo que se indique (releases). Flujo completo por tarea: `docs/architecture/git-workflow.md`.
-- **Cuerpo del PR**: incluir siempre enlaces a **Issue** y **Task** si existen.
+- **Cuerpo del PR**: incluir siempre enlace a **Jira (`CRYPT-*`)** y a **Engram (`tasks/CRYPT-*`)** si existe.
 - **Borrado remoto**: no borrar ramas remotas salvo instruccion explicita. El flujo normal delega ese borrado a la opcion de GitHub **Automatically delete head branches**.
 
 ### Conventional Commits
@@ -69,10 +69,10 @@ Si un commit mezcla tipos (ej. feat + test), usar el tipo principal del cambio; 
    - Si puedes escoger, ejecuta en Git Bash / sintaxis bash (la regla de proyecto lo prefiere). Si no, adapta a PowerShell evitando sintaxis bash exclusiva.
    - Comprobar estado de `git status`.
    - Si en el prompt se pide explicitamente una rama distinta (por ejemplo `docs/<slug>`), crearla/usarla desde la rama actual o desde `develop`.
-   - Si no hay rama de task activa y no se pide una rama distinta, crear `task/<id>-slug` desde la rama actual o desde `develop` y cambiar a ella.
+   - Si no hay rama de task activa y no se pide una rama distinta, crear `task/CRYPT-123-slug` desde la rama actual o desde `develop` y cambiar a ella.
    - Hacer `git add` de los ficheros relevantes (no incluir generados, `.env`, cachés).
    - Hacer commit con mensaje descriptivo.
-   - Hacer `git push -u origin task/<id>-slug` (o el nombre de rama usado).
+   - Hacer `git push -u origin task/CRYPT-123-slug` (o el nombre de rama usado).
    - Si hay CLI para abrir PR (GitHub CLI `gh pr create`, etc.), usarla con titulo y cuerpo; si no, indicar la URL o los pasos para abrir el PR manualmente.
    - Asegurar que el cuerpo del PR incluya enlaces a issue/task.
 
@@ -92,8 +92,8 @@ Si un commit mezcla tipos (ej. feat + test), usar el tipo principal del cambio; 
 
 ```md
 ## Enlaces
-- Issue: #123
-- Task: tasks/SC-209
+- Jira: CRYPT-123
+- Engram: tasks/CRYPT-123
 
 ## Resumen
 - Cambio principal 1

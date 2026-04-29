@@ -18,6 +18,14 @@ Scaffold para una plataforma SaaS multi-tenant RAG + Actions. Admins gestionan u
 | `infra/` | Docker Compose | Entorno local |
 | `docs/` | Markdown | Arquitectura, modelo de dominio, tareas (`docs/sprints/tasks.md`) |
 
+## Fuentes de verdad de producto y ejecución
+
+- **Confluence**: futura zona cero no técnica: visión, producto, dominio, MVP, flujos y decisiones de negocio.
+- **Jira (`CRYPT`)**: backlog y ejecución: épicas, historias, tareas, bugs, sprints, estados, prioridades y trabajo para agentes.
+- **Engram**: memoria operativa de agentes: decisiones, convenciones, IDs, sesiones, gotchas y resúmenes de ejecución.
+- **GitHub**: código, ramas, PRs, reviews y CI. No usar GitHub Issues como backlog de producto.
+- Los antiguos `docs/sprints/*.md` fueron experimentales; no son fuente real de planificación salvo instrucción explícita.
+
 ## Shell por defecto (importante para agentes y subagentes)
 
 **Se usa Git Bash (bash) por defecto**, no PowerShell. Al ejecutar comandos en terminal o invocar al subagente shell:

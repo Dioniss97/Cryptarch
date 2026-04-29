@@ -1,19 +1,25 @@
 ---
-description: Engram como memoria persistente del proyecto — familias docs/*, tasks/*, knowledge/*
+description: Engram como memoria operativa de agentes — decisiones, IDs, sesiones y gotchas
 alwaysApply: true
 ---
 
 # Engram Memory Workflow
 
-This project uses Engram as persistent development memory. **Casi todo vive en Engram**: estado de sprints y tasks, criterios de aceptación, siguiente tarea, docs digeridos y conocimiento reutilizable. Los .md del repo son referencia o semilla para poblar Engram; una vez creadas las memorias, la fuente de verdad es Engram.
+This project uses Engram as persistent **agent memory**. It is not the product backlog.
+
+Fuentes de verdad:
+- **Confluence**: futura zona cero no técnica (visión, producto, dominio, MVP, flujos, decisiones de negocio).
+- **Jira (`CRYPT`)**: backlog y ejecución (épicas, historias, tareas, bugs, sprints, estados, prioridades y trabajo para agentes).
+- **Engram**: memoria operativa de agentes (decisiones, convenciones, IDs, sesiones, gotchas, resúmenes de ejecución).
+- **GitHub**: código, ramas, PRs, reviews y CI. No backlog de producto.
 
 ## Memory topic families
 
 | Family | Purpose |
 |--------|---------|
-| **sprints/** | One memory per sprint (`sprints/sprint-02`, etc.): goal, scope, acceptance criteria, list of task IDs, **Status**. Source of truth for "what is this sprint" and "is it done". |
-| **tasks/** | One evolving memory per task (`tasks/<task_id>`): goal, scope, **Status**. Source of truth for "what to do next" and "what was done". |
-| **docs/** | Digested documentation and architecture. Summaries of README or scattered docs. |
+| **sprints/** | Optional operational summaries for Jira sprints; Jira remains source of truth for sprint membership/status. |
+| **tasks/** | One evolving memory per Jira task (`tasks/CRYPT-123`): operational context, scope, outcome, gotchas. Jira remains source of truth for status. |
+| **docs/** | Digested technical docs and architecture. Confluence will own non-technical product truth. |
 | **knowledge/** | Reusable discoveries not tied to a single task: debugging findings, patterns, conventions, gotchas. |
 
 ## Workflow
@@ -23,14 +29,16 @@ This project uses Engram as persistent development memory. **Casi todo vive en E
 - Search Engram for relevant `docs/*`, `tasks/*`, and `knowledge/*` (e.g. `mem_search` with 2–5 keywords).
 - Use progressive disclosure: `mem_search` → `mem_timeline` (if needed) → `mem_get_observation` for full content.
 
-**When a Jira/task is introduced**
+**When a Jira task is introduced**
 
-- Create or update memory with `topic_key`: `tasks/<task_id>`.
+- Read the Jira issue first (`CRYPT-*`).
+- Create or update memory with `topic_key`: `tasks/<jira_key>` (e.g. `tasks/CRYPT-9`).
 - Store task context: goal, expected scope, suspected files.
 
 **When a sprint is started** (see `.cursor/skills/sprint-start/SKILL.md`)
 
-- Create or update `sprints/sprint-XX` in Engram with: goal, scope, acceptance criteria, list of task IDs (from the sprint doc or from `docs/sprints/tasks.md`), **Status: pending**. Create one memory per task `tasks/task-XX` with description and **Status: pending** if it doesn’t exist yet. From then on, Engram is the source of truth for that sprint.
+- Read Jira sprint membership/status first.
+- Optionally create/update `sprints/<jira-sprint-name-or-id>` in Engram with a concise operational summary and links to `CRYPT-*` tasks. Do not use old `docs/sprints/*.md` as authoritative planning.
 
 **During development**
 
@@ -40,7 +48,7 @@ This project uses Engram as persistent development memory. **Casi todo vive en E
 **When finishing a task**
 
 - Update the same `tasks/<task_id>` with: What, Why, Where, Learned (and outcome).
-- Set **Status** to `done` only when **local tests have passed**, changes are **committed**, a **PR is open**, and **relevant GitHub Actions checks on that PR are green** (or the human explicitly accepts closure). Opening a PR alone is **not** enough for `done`. If CI cannot pass without human/infra, use **`blocked`** with a short reason until resolved or agreed.
+- Update Engram outcome after local tests, commit/PR and CI review. Jira is updated for actual workflow status; Engram records What/Why/Where/Learned and any blocker rationale.
 
 ## Task and sprint status (autonomous workflow)
 
@@ -67,7 +75,7 @@ Every task memory (`tasks/<task_id>`) and every sprint memory (`sprints/sprint-X
 - Blocked: "Status: blocked" or "sprint blocked".
 - Sprints: "sprints sprint-02" or "Status: in_progress sprint". Sprint memory holds goal, criteria, and task list.
 
-No separate "checklist" type: status lives inside the same observation content for `tasks/<id>` and `sprints/sprint-XX`. The agent can be autonomous: pick pending task → set in_progress → implement → tests → commit → PR → **verify CI** (`ci-triage`) → set done or blocked → optionally update sprint; human reviews PRs on GitHub.
+No separate "checklist" type in Engram: use Jira for backlog workflow and Engram for context/outcome. The agent can be autonomous: pick a Jira `Ready for Agent` task → create/update Engram context → implement → tests → commit → PR → **verify CI** (`ci-triage`) → update Jira/Engram done or blocked; human reviews PRs on GitHub.
 
 ## Memory format
 
@@ -84,7 +92,7 @@ Status: pending | in_progress | blocked | done   # mandatory for tasks/<id> and 
 ## Rules
 
 - Prefer updating existing `topic_key` instead of creating duplicates.
-- Sprints and tasks live in Engram; use `sprints/sprint-XX` and `tasks/task-XX` as the source of truth. Markdown files are for bootstrap or human reference only.
+- Jira owns sprints/tasks/status. Engram mirrors only the operational context useful to agents.
 - Do not store trivial thoughts or intermediate reasoning.
 - Store only technical insights useful for future work.
 - Keep entries short and precise.
@@ -94,6 +102,6 @@ Status: pending | in_progress | blocked | done   # mandatory for tasks/<id> and 
 
 In Cursor there are no slash commands; use natural language:
 
-- **Start a task** — e.g. “task SC-209” or “empieza la tarea SC-209”: ask for task ID if missing, search/create `tasks/<id>`, load relevant `docs/*` and `knowledge/*`, then work and update the task memory on completion.
+- **Start a task** — e.g. “task CRYPT-9” or “empieza la tarea CRYPT-9”: ask for Jira key if missing, read Jira, search/create `tasks/CRYPT-9`, load relevant `docs/*` and `knowledge/*`, then work and update Jira/Engram on completion.
 - **Digest documentation** — e.g. “doc” or “digiere la documentación de X”: extract important technical info, summarize architecture/conventions/workflows, store under `docs/<topic>`. Keep concise; avoid copying large blocks.
 - **Store a discovery** — e.g. “knowledge” or “guarda este descubrimiento”: define `topic_key`: `knowledge/<topic>`, save with What/Why/Where/Learned.

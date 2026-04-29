@@ -1,16 +1,16 @@
 ---
 name: sprint-next
-description: Encontrar la siguiente tarea o sprint pendiente; fuente de verdad es Engram.
+description: Encontrar la siguiente tarea o sprint pendiente en Jira (`CRYPT`). Usar cuando pidan siguiente tarea, siguiente sprint, qué hacer ahora o priorización para agentes.
 ---
 
 # Sprint next
 
-Usar cuando pidan **siguiente tarea**, **siguiente sprint** o **qué hacer ahora**. Consultar **siempre Engram primero**; no usar los .md para decidir qué toca.
+Usar cuando pidan **siguiente tarea**, **siguiente sprint** o **qué hacer ahora**. Consultar **Jira (`CRYPT`) primero**; no usar los `.md` antiguos para decidir qué toca.
 
 ## Pasos
 
-1. **Buscar en Engram** trabajo pendiente: `mem_search` con "Status: pending", "tasks pending", "sprints sprint". La siguiente tarea es la de menor ID con Status pending (el orden viene de la memoria del sprint o del id numérico task-XX).
-2. **Si Engram no tiene sprints/tasks** (primera vez o memoria vacía): usar `docs/sprints/tasks.md` y el doc del sprint como **semilla**: aplicar skill sprint-start para ese sprint (crear `sprints/sprint-XX` y `tasks/task-XX` en Engram) y luego devolver el plan y la siguiente tarea.
-3. **Devolver**: id de la tarea o sprint (ej. task-02, Sprint 02), resumen del objetivo en 5 puntos, dependencias. Si hace falta, indicar la ruta del doc como referencia (`docs/sprints/sprint-02-auth-admin-api.md`).
+1. **Buscar en Jira** issues `Ready for Agent`, o si no existe ese estado, en `refinamiento` priorizados por el usuario/orquestador. Usar JQL del proyecto `CRYPT`.
+2. **Consultar Engram** solo para recuperar contexto operativo de la tarjeta elegida (`tasks/CRYPT-*`) y decisiones/gotchas relacionadas.
+3. **Devolver**: Jira key (`CRYPT-*`), resumen del objetivo, dependencias, por qué es la siguiente, y si ya está lista para agente o requiere refinamiento.
 
-Todo el estado vive en Engram; los .md son referencia o semilla.
+Jira es la fuente de verdad de backlog/sprints/estado. Engram es memoria operativa.

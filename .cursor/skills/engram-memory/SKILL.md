@@ -1,28 +1,35 @@
 ---
 name: engram-memory
-description: Persistent project memory using Engram. Use when starting a task, digesting docs, storing discoveries, or when the user mentions memory, tasks, docs, or knowledge.
+description: Persistent operational memory using Engram. Use when starting Jira tasks, digesting technical docs, storing agent discoveries, or when the user mentions memory, sessions, decisions, gotchas, or knowledge.
 ---
 
 # Engram memory
 
 This skill manages persistent project knowledge using Engram (MCP tools: `mem_save`, `mem_search`, `mem_context`, `mem_get_observation`, `mem_timeline`, `mem_session_summary`, etc.).
 
-## Memory structure (casi todo vive aquí)
+## Source-of-truth boundaries
+
+- **Confluence**: futura zona cero no técnica: visión, producto, dominio, MVP, flujos y decisiones de negocio.
+- **Jira (`CRYPT`)**: backlog y ejecución: épicas, historias, tareas, bugs, sprints, estados, prioridades y trabajo para agentes.
+- **Engram**: memoria operativa de agentes: decisiones, convenciones, IDs, sesiones, gotchas y resúmenes de ejecución.
+- **GitHub**: código, ramas, PRs, reviews y CI. No backlog de producto.
+
+## Memory structure
 
 | Family | Purpose |
 |--------|---------|
-| **sprints/** | One memory per sprint: goal, scope, acceptance criteria, task list, **Status**. Source of truth for sprint state. |
-| **tasks/** | One memory per task: description, scope, **Status**. Source of truth for "what to do next" and outcome. |
-| **docs/** | Architecture summaries and technical documentation. |
+| **sprints/** | Optional operational summaries of Jira sprints. Jira owns sprint state. |
+| **tasks/** | One memory per Jira issue (`tasks/CRYPT-123`): execution context, findings and outcome. Jira owns backlog/status. |
+| **docs/** | Technical documentation digests. Confluence owns product/domain truth when available. |
 | **knowledge/** | Reusable discoveries: debugging findings, patterns, conventions, gotchas. |
 
-Consult Engram first for sprint/task state; markdown files are for bootstrap or human reference only.
+Consult Jira first for backlog/sprint state. Consult Engram for operational context, previous decisions and gotchas.
 
 ## Workflow
 
 ### 1. Retrieve memory
 
-Before starting work, search Engram for relevant `sprints/*`, `tasks/*`, `docs/*`, and `knowledge/*`:
+Before starting work, read the Jira issue (`CRYPT-*`) and search Engram for relevant `sprints/*`, `tasks/*`, `docs/*`, and `knowledge/*`:
 
 - `mem_search` with 2–5 keywords (component + intent).
 - If a result is relevant: `mem_timeline(observation_id=...)` for context, then `mem_get_observation(id=...)` for full content.
@@ -30,13 +37,13 @@ Before starting work, search Engram for relevant `sprints/*`, `tasks/*`, `docs/*
 
 ### 2. Task initialization
 
-When a new task (e.g. Jira ID or task-XX) appears:
+When a new Jira task appears:
 
-- Create or update memory with `topic_key`: `tasks/<task_id>`.
-- Store: task goal, expected scope, suspected files; include **Status: pending** in content.
+- Create or update memory with `topic_key`: `tasks/<jira_key>` (e.g. `tasks/CRYPT-9`).
+- Store: Jira key, task goal, expected scope, suspected files, useful links and operational status.
 - Use `mem_save` with `topic_key` so later updates upsert the same memory.
 
-When **starting a sprint**: ensure all tasks for that sprint exist in Engram (see `docs/sprints/tasks.md` and `.cursor/skills/sprint-start/SKILL.md`). Create each `tasks/task-XX` for the sprint with Status: pending if not already present. Optionally create/update `sprints/sprint-XX`. The sprint’s checklist is then the set of these task memories.
+When **starting a sprint**: read Jira sprint membership first. Optionally create/update a concise Engram `sprints/<jira-sprint>` summary with links to `CRYPT-*` issues and execution notes. Do not use old sprint markdown as source of truth.
 
 ### 3. Discoveries
 
@@ -47,13 +54,13 @@ If reusable technical knowledge appears (pattern, gotcha, fix):
 
 ### 4. Task completion
 
-Update `tasks/<task_id>` with:
+Update `tasks/<jira_key>` with:
 
 - **What**: What was implemented.
 - **Why**: Reason for the change.
 - **Where**: Files or modules affected.
 - **Learned**: Risks, gotchas, or follow-ups.
-- **Status**: Set to `done` only when tests pass locally, code is committed, a PR is open, **and** the relevant GitHub Actions checks on that PR are green (orquestador valida con subagente **ci-triage**). A PR alone is not enough. Use **`blocked`** with reason if CI/org/infra blocks until a human resolves it.
+- **Status**: Mirror the operational outcome after tests/PR/CI. Jira remains the workflow source of truth.
 
 ### 5. Task and sprint status (autonomous workflow)
 
@@ -69,11 +76,11 @@ Every task and sprint memory must include in its **content** a line:
 
 **When to update status:** Start task → `Status: in_progress`. Blocked → `Status: blocked`. Tests + commit + PR + **CI verde** (vía flujo orquestador + `ci-triage`) → `Status: done`; optionally update `sprints/sprint-XX` (e.g. `sprints/sprint-02`) with the same status convention.
 
-**How to find work:** Use `mem_search` with phrases like: "Status: pending", "Status: in_progress", "tasks pending", "sprint blocked", "sprints sprint-02". No separate checklist type — status is inside the same observation content for `tasks/<id>` and `sprints/sprint-XX`. Do not mark `done` until CI is green or the task is explicitly `blocked`; see `docs/architecture/orchestrator-flow.md` and `.cursor/agents/ci-triage.md`.
+**How to find work:** query Jira for `Ready for Agent`, `refinamiento`, sprint membership and priorities. Use Engram search to recover context for a known `CRYPT-*` task or previous decision.
 
 ## Guidelines
 
 - Prefer updating existing memories (same `topic_key`) over creating duplicates.
 - Keep entries concise; avoid trivial or narrative content.
-- Sprints and tasks live in Engram (`sprints/sprint-XX`, `tasks/task-XX`); use them as the source of truth. Markdown is reference or seed only.
+- Jira owns sprints/tasks/status. Engram mirrors only useful operational context for agents.
 - After context reset or compaction, call `mem_context` to recover state.

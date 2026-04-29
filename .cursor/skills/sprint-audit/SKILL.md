@@ -1,17 +1,17 @@
 ---
 name: sprint-audit
-description: Auditar un sprint frente a sus criterios de aceptación antes de marcarlo como hecho.
+description: Auditar un sprint de Jira frente a sus criterios de aceptación antes de marcarlo como hecho.
 ---
 
 # Sprint audit
 
-Usar cuando pidan **auditar** un sprint antes de cerrarlo.
+Usar cuando pidan **auditar** un sprint antes de cerrarlo. Jira (`CRYPT`) es la fuente de verdad del sprint; Engram aporta contexto operativo.
 
 ## Pasos
 
-1. **Identificar alcance**: en Engram `sprints/sprint-XX` (objetivo, criterios, lista de tasks) y `tasks/task-XX`. Si falta algo, completar desde `docs/sprints/sprint-XX.md` o `tasks.md`.
-2. **Criterios**: usar los criterios de aceptación guardados en la memoria del sprint en Engram; si no están, leer el doc del sprint.
+1. **Identificar alcance**: consultar Jira (`CRYPT`) para sprint, issues incluidos, estados, prioridades y bloqueos.
+2. **Criterios**: usar criterios de aceptación de las tarjetas Jira y contexto operativo en Engram (`tasks/CRYPT-*`) si existe.
 3. **Inspeccionar**: código, tests y docs afectados.
 4. **Reportar**: PASS/FAIL por criterio, huecos, atajos y tareas de seguimiento. No marcar el sprint como completo automáticamente; recomendar pasos concretos.
 
-Fuente de verdad: Engram. El checklist del sprint son las memorias `tasks/task-XX`; los .md son referencia.
+Fuente de verdad: Jira. Engram es memoria operativa. Los `.md` antiguos de sprints son históricos/experimentales salvo instrucción explícita.
