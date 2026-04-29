@@ -147,7 +147,9 @@ Orden sugerido para entender el proyecto de menos a mas:
 | 2 | [AGENTS.md](AGENTS.md) | Mapa de roles, skills y subagentes; cuando delegar y como. |
 | 3 | [docs/architecture/orchestrator-flow.md](docs/architecture/orchestrator-flow.md) | Flujo operativo completo del orquestador con subagentes. |
 | 4 | [docs/architecture/git-workflow.md](docs/architecture/git-workflow.md) | Convenciones de ramas/commits/PR y cierre de trabajo. |
-| 5 | [docs/sprints/tasks.md](docs/sprints/tasks.md) | Backlog de referencia para priorizar y poblar Engram. |
+| 5 | Jira `CRYPT` | Backlog real: epicas, historias, tareas, bugs, sprints, estados y prioridades. |
+
+> Nota: los antiguos ficheros en `docs/sprints/` quedan como referencia historica/experimental salvo que se indique lo contrario. La planificacion real vive en Jira.
 
 ## Troubleshooting rapido
 

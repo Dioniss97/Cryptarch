@@ -9,12 +9,12 @@
 | Seccion | Para que sirve |
 |---|---|
 | `## Modelo de ramas` | Ver estrategia de ramas (`develop`, `main`, task). |
-| `## Flujo issue -> task -> branch -> PR` | Ejecutar el flujo de entrega sin mezclar backlog y ejecucion. |
+| `## Flujo Jira -> Engram -> branch -> PR` | Ejecutar el flujo de entrega sin mezclar backlog y contexto operativo. |
 | `## Convenciones de commits` | Mantener mensajes consistentes y legibles. |
-| `## GitHub CLI (gh) recomendado` | Aclarar el uso permitido de `gh` y su configuracion basica. |
+| `## GitHub CLI (gh) recomendado` | Aclarar el uso permitido de `gh` para PRs y CI. |
 | `## Enlace con el resto de documentos` | Volver al mapa global de lectura. |
 
-Documento de referencia para agentes y humanos: ciclo de trabajo que parte del backlog en GitHub Issues, pasa a ejecucion en Engram y termina en Pull Request. Los agentes pueden consultar este doc (o la memoria Engram `docs/git-workflow` si esta digerida) para seguir el flujo sin ambiguedad.
+Documento de referencia para agentes y humanos: ciclo de trabajo que parte del backlog en Jira (`CRYPT`), usa Engram como memoria operativa y termina en Pull Request. Los agentes pueden consultar este doc (o la memoria Engram `docs/git-workflow` si esta digerida) para seguir el flujo sin ambiguedad.
 
 ## Modelo de ramas
 
@@ -22,19 +22,19 @@ Documento de referencia para agentes y humanos: ciclo de trabajo que parte del b
 |------|-----|
 | **main** | Estable; listo para produccion. Solo se actualiza por merge desde `develop` al hacer release. |
 | **develop** | Integracion. Las ramas de trabajo se crean desde `develop` y el PR apunta a `develop`. |
-| **task/<id>-slug** | Rama normal de trabajo por task. Se crea desde `develop`, se usa para implementar una `tasks/<id>` y se integra por PR a `develop`. |
+| **task/CRYPT-123-slug** | Rama normal de trabajo por Jira task. Se crea desde `develop`, se usa para implementar `CRYPT-*` y se integra por PR a `develop`. |
 | **docs/<slug>** | Excepcion opcional para cambios puramente documentales cuando no merece una task de ejecucion completa. |
 
-## Flujo issue -> task -> branch -> PR
+## Flujo Jira -> Engram -> branch -> PR
 
-1. **Issue en GitHub**  
-   El trabajo entra por un issue: captura, triage, labels, prioridad y contexto inicial. El issue sirve para backlog y seguimiento de producto.
+1. **Issue en Jira (`CRYPT-*`)**  
+   El trabajo entra por Jira: captura, triage, tipo, estado, prioridad, sprint y contexto inicial. Jira sirve para backlog y seguimiento de ejecución.
 
-2. **Task en Engram**  
-   Cuando el item pasa a ejecucion, el orquestador crea o actualiza `tasks/<id>` en Engram y enlaza el issue. Desde ese punto, la task es la fuente de verdad operativa.
+2. **Contexto en Engram**  
+   Cuando el item pasa a ejecucion, el orquestador crea o actualiza `tasks/CRYPT-*` en Engram y enlaza el issue Jira. Jira mantiene estado; Engram conserva contexto, decisiones y outcome para agentes.
 
 3. **Crear rama**  
-   Crear `task/<id>-slug` desde `develop` y cambiar a ella. Si el cambio es solo documental y no requiere task, se permite `docs/<slug>`.
+   Crear `task/CRYPT-123-slug` desde `develop` y cambiar a ella. Si el cambio es solo documental y no requiere task, se permite `docs/<slug>`.
    Este paso es **obligatorio antes de implementar**: el orquestador debe pedir a `git-pr` que cree o seleccione la rama de trabajo antes de invocar a `ai-worker`.
 
 4. **Trabajar**  
@@ -50,26 +50,26 @@ Documento de referencia para agentes y humanos: ciclo de trabajo que parte del b
    Hacer commit(s) con mensajes claros y acotados al scope de la task. Usar **Conventional Commits** sin prefijo de sprint. Preferir un commit por cambio logico; evitar megacommits.
 
 8. **Push**  
-   Subir la rama al remoto (`git push -u origin task/<id>-slug`). No hacer force push salvo indicacion explicita.
+   Subir la rama al remoto (`git push -u origin task/CRYPT-123-slug`). No hacer force push salvo indicacion explicita.
 
 9. **Abrir o actualizar PR**  
-   Abrir Pull Request hacia **develop** (no hacia `main`). El cuerpo del PR debe enlazar al issue y a la task. El orquestador puede invocar **git-pr** para rama, commit, push y PR.
+   Abrir Pull Request hacia **develop** (no hacia `main`). El cuerpo del PR debe enlazar a Jira `CRYPT-*` y a Engram `tasks/CRYPT-*` si existe. El orquestador puede invocar **git-pr** para rama, commit, push y PR.
 
 10. **Verificar CI en GitHub**  
-   Una PR abierta **no cierra** la task por si sola. El orquestador invoca **ci-triage** para revisar los checks de GitHub Actions (consulta con `gh`, logs si fallan, clasificacion y siguiente paso). Mantener `tasks/<id>` en `Status: in_progress` hasta que los checks relevantes esten **verdes** o la task pase a `Status: blocked` con motivo explicito (permisos, infra, decision humana). Cuando CI este verde, entonces si: actualizar `tasks/<id>` con What / Why / Where / Learned y `Status: done`. El humano revisa y mergea el PR en GitHub.
+   Una PR abierta **no cierra** la task por si sola. El orquestador invoca **ci-triage** para revisar los checks de GitHub Actions (consulta con `gh`, logs si fallan, clasificacion y siguiente paso). Mantener Jira/Engram en progreso hasta que los checks relevantes esten **verdes** o la task pase a `blocked` con motivo explicito (permisos, infra, decision humana). Cuando CI este verde, entonces si: actualizar Jira y `tasks/CRYPT-*` con What / Why / Where / Learned y estado final. El humano revisa y mergea el PR en GitHub.
 
 ## Convencion de enlazado
 
-- **Issue -> Task**: guardar en `tasks/<id>` el numero o URL del issue relacionado.
-- **Task -> Branch**: usar `task/<id>-slug`.
-- **PR -> Issue/Task**: incluir ambos enlaces en el cuerpo del PR.
+- **Jira -> Engram**: guardar en `tasks/CRYPT-*` el enlace o key de Jira.
+- **Jira -> Branch**: usar `task/CRYPT-123-slug`.
+- **PR -> Jira/Engram**: incluir ambos enlaces en el cuerpo del PR.
 
 Plantilla minima recomendada para el cuerpo del PR:
 
 ```md
 ## Enlaces
-- Issue: #123
-- Task: tasks/SC-209
+- Jira: CRYPT-123
+- Engram: tasks/CRYPT-123
 
 ## Resumen
 - Cambio principal 1
@@ -81,7 +81,7 @@ Plantilla minima recomendada para el cuerpo del PR:
 
 ## Resumen en una linea
 
-Por cada item ejecutable: **issue en GitHub -> task en Engram -> rama `task/<id>-slug` -> trabajar -> testear -> [debug -> testear]* -> commits legibles -> push -> PR a `develop` -> ci-triage (checks CI) -> [test-runner/debugger -> git-pr -> ci-triage]* hasta verde o bloqueo -> entonces `Status: done` en Engram**.
+Por cada item ejecutable: **Jira `CRYPT-*` -> contexto Engram `tasks/CRYPT-*` -> rama `task/CRYPT-*-slug` -> trabajar -> testear -> [debug -> testear]* -> commits legibles -> push -> PR a `develop` -> ci-triage (checks CI) -> [test-runner/debugger -> git-pr -> ci-triage]* hasta verde o bloqueo -> entonces `done` en Jira/Engram**.
 
 ## Donde se implementa
 
@@ -105,16 +105,16 @@ Detalle completo en [`.cursor/agents/git-pr.md`](../../.cursor/agents/git-pr.md)
 
 ## GitHub CLI (gh) recomendado
 
-`gh` es util para consultar issues/PRs y abrir PRs sin salir del terminal, pero no sustituye el flujo anterior.
+`gh` es util para consultar/abrir PRs y revisar CI sin salir del terminal, pero no sustituye el flujo anterior.
 
 Uso recomendado:
-- **Consultas**: `gh issue view`, `gh issue list`, `gh pr view`, `gh pr status`, `gh pr checks` (estado de checks de la PR; ver subagente **ci-triage** para triage de fallos).
+- **Consultas**: `gh pr view`, `gh pr status`, `gh pr checks` (estado de checks de la PR; ver subagente **ci-triage** para triage de fallos).
 - **PRs**: `gh pr create`, `gh pr edit`.
-- **Issues**: reservar la creacion/actualizacion a sesiones de triage o cuando se pida explicitamente.
+- **Issues de GitHub**: no usarlos como backlog de producto. Jira (`CRYPT`) es la fuente de backlog.
 
 Configuracion basica para un repo dentro de una organizacion:
 - Usar una cuenta con acceso real al repositorio y a la organizacion.
-- Tener `gh` autenticado con los permisos que requiera el repo para leer/escribir issues y PRs. Si la organizacion usa SSO, la sesion debe estar autorizada.
+- Tener `gh` autenticado con los permisos que requiera el repo para leer/escribir PRs. Si la organizacion usa SSO, la sesion debe estar autorizada.
 - Comprobar el estado con `gh auth status` antes de depender de `gh`.
 - Mantener el uso con privilegio minimo: consultas, creacion/actualizacion de issues y PRs, nunca acciones administrativas salvo instruccion explicita.
 
@@ -127,4 +127,4 @@ Ramas remotas:
 - Vision general y quick start: [README.md](../../README.md).
 - Roles y subagentes: [AGENTS.md](../../AGENTS.md).
 - Orquestacion end-to-end: [orchestrator-flow.md](orchestrator-flow.md).
-- Priorizacion de trabajo por sprint: [tasks.md](../sprints/tasks.md).
+- Priorizacion de trabajo por sprint: Jira (`CRYPT`).

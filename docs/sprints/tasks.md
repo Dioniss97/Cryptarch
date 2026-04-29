@@ -1,6 +1,7 @@
-# Tasks por prioridad (referencia / semilla)
+# Tasks por prioridad (histórico / experimental)
 
-> Este documento te orienta sobre "que toca" por sprint.
+> Este documento fue una prueba temprana para observar como los agentes manejaban sprints en markdown.
+> **No es la fuente de verdad de planificación.**
 > Para entender como ejecutar el trabajo, ve a [orchestrator-flow.md](../architecture/orchestrator-flow.md) y [git-workflow.md](../architecture/git-workflow.md).
 > Para una vista general del proyecto, empieza por el [README](../../README.md).
 
@@ -16,9 +17,9 @@
 | Sprint 05 | Preliminar | Chat, RAG y acciones (`task-19` a `task-22`). |
 | Sprint 06 | Referencia | Hardening (desglose al abrir). |
 
-**La fuente de verdad es Engram.** El estado de sprints y tasks, los criterios de aceptación y qué toca hacer viven en memorias `sprints/sprint-XX` y `tasks/task-XX`. Consultar siempre Engram primero (`mem_search` "Status: pending", "sprints sprint", etc.).
+**La fuente de verdad real es Jira (`CRYPT`)**: épicas, historias, tareas, bugs, sprints, estados, prioridades y trabajo para agentes. **Engram** conserva memoria operativa de agentes. **Confluence** será la zona cero de verdad no técnica cuando se pueble.
 
-Este fichero sirve de **referencia** y de **semilla**: si Engram no tiene aún un sprint o sus tasks, se usa este doc (y el `sprint-XX.md` correspondiente) para crear o completar esas memorias. Una vez poblado, el agente trabaja desde Engram.
+Este fichero queda como **referencia histórica**. No usarlo para decidir qué toca salvo instrucción explícita.
 
 ---
 
