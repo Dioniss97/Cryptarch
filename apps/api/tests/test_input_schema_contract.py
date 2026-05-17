@@ -1,7 +1,6 @@
 """Unit tests for action input_schema JSON Schema subset (no DB)."""
 
 import pytest
-
 from core.domain.input_schema_contract import (
     InputSchemaValidationError,
     validate_and_normalize_input_schema_json,

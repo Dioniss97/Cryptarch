@@ -6,10 +6,7 @@ Validate connector_id and tag_ids in tenant. No Session or DB in this module; po
 from typing import Any
 
 from core.domain.action_request_config import validate_and_normalize_request_config
-from core.domain.input_schema_contract import (
-    InputSchemaValidationError,
-    validate_and_normalize_input_schema_json,
-)
+from core.domain.input_schema_contract import validate_and_normalize_input_schema_json
 from core.domain.models import Action
 from core.ports.action_repository import ActionRepository
 from core.ports.connector_repository import ConnectorRepository
