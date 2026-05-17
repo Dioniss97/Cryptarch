@@ -97,12 +97,14 @@ export function chatFieldsFromInputSchemaJson(raw) {
   }
 
   const properties = raw.properties;
-  if (!properties || typeof properties !== "object" || Array.isArray(properties))
+  if (
+    !properties ||
+    typeof properties !== "object" ||
+    Array.isArray(properties)
+  )
     return [];
 
-  const requiredSet = new Set(
-    Array.isArray(raw.required) ? raw.required : [],
-  );
+  const requiredSet = new Set(Array.isArray(raw.required) ? raw.required : []);
   return Object.entries(properties).map(([name, definition]) => {
     const d =
       definition && typeof definition === "object" && !Array.isArray(definition)
@@ -116,7 +118,9 @@ export function chatFieldsFromInputSchemaJson(raw) {
     let widgetType = "text";
     let options;
     const title =
-      typeof d.title === "string" && d.title.trim() !== "" ? d.title.trim() : name;
+      typeof d.title === "string" && d.title.trim() !== ""
+        ? d.title.trim()
+        : name;
 
     if (jsType === "boolean") {
       widgetType = "boolean";
@@ -129,10 +133,7 @@ export function chatFieldsFromInputSchemaJson(raw) {
           value: v,
           label: String(v),
         }));
-      } else if (
-        d.format === "textarea" ||
-        d["x-ui-widget"] === "textarea"
-      ) {
+      } else if (d.format === "textarea" || d["x-ui-widget"] === "textarea") {
         widgetType = "textarea";
       } else {
         widgetType = "text";

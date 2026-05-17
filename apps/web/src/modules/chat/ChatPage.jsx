@@ -131,7 +131,9 @@ export function ChatPage() {
       }
       setSchema(found);
       const defaults = {};
-      for (const field of chatFieldsFromInputSchemaJson(found?.input_schema_json)) {
+      for (const field of chatFieldsFromInputSchemaJson(
+        found?.input_schema_json,
+      )) {
         defaults[field.name] = initialValueByType(field.type);
       }
       setPayload(defaults);
