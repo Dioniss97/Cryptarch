@@ -45,11 +45,15 @@ def validate_and_normalize_input_schema_json(raw: Any) -> dict[str, Any] | None:
         )
     schema_type = raw.get("type")
     if schema_type is not None and schema_type != "object":
-        raise InputSchemaValidationError("input_schema_json.type must be 'object' when set")
+        raise InputSchemaValidationError(
+            "input_schema_json.type must be 'object' when set"
+        )
     properties = raw.get("properties")
     if properties is not None:
         if not isinstance(properties, dict):
-            raise InputSchemaValidationError("input_schema_json.properties must be an object")
+            raise InputSchemaValidationError(
+                "input_schema_json.properties must be an object"
+            )
         for key, definition in properties.items():
             if not isinstance(definition, dict):
                 raise InputSchemaValidationError(
@@ -63,7 +67,9 @@ def validate_and_normalize_input_schema_json(raw: Any) -> dict[str, Any] | None:
                 )
     required = raw.get("required")
     if required is not None:
-        if not isinstance(required, list) or not all(isinstance(x, str) for x in required):
+        if not isinstance(required, list) or not all(
+            isinstance(x, str) for x in required
+        ):
             raise InputSchemaValidationError(
                 "input_schema_json.required must be an array of strings",
             )
