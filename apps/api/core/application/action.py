@@ -6,6 +6,10 @@ Validate connector_id and tag_ids in tenant. No Session or DB in this module; po
 from typing import Any
 
 from core.domain.action_request_config import validate_and_normalize_request_config
+from core.domain.input_schema_contract import (
+    InputSchemaValidationError,
+    validate_and_normalize_input_schema_json,
+)
 from core.domain.models import Action
 from core.ports.action_repository import ActionRepository
 from core.ports.connector_repository import ConnectorRepository
@@ -79,6 +83,7 @@ def create_action(
     _validate_tag_ids_in_tenant(tag_ids, tenant_id, tag_repo)
     method_norm = _normalize_method(method)
     rc_norm = validate_and_normalize_request_config(method_norm, request_config)
+    schema_norm = validate_and_normalize_input_schema_json(input_schema_json)
     action = Action(
         tenant_id=tenant_id,
         connector_id=connector.id,
@@ -86,7 +91,7 @@ def create_action(
         path=path,
         name=name,
         request_config=rc_norm,
-        input_schema_json=input_schema_json,
+        input_schema_json=schema_norm,
         input_schema_version=input_schema_version,
     )
     return repo.add(action, tag_ids)
@@ -128,7 +133,9 @@ def update_action(
             action.request_config,
         )
     if input_schema_json is not None:
-        action.input_schema_json = input_schema_json
+        action.input_schema_json = validate_and_normalize_input_schema_json(
+            input_schema_json,
+        )
     if input_schema_version is not None:
         action.input_schema_version = input_schema_version
     return repo.save(action, tag_ids)

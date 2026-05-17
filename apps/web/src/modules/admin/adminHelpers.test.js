@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildAuthConfigFromConnectorForm,
+  chatFieldsFromInputSchemaJson,
   emptyConnectorAuthFormFields,
   joinBaseUrlAndPath,
   parseConnectorAuthForForm,
@@ -23,6 +24,88 @@ describe("joinBaseUrlAndPath", () => {
     expect(joinBaseUrlAndPath("https://a.com", "https://other/full")).toBe(
       "https://other/full",
     );
+  });
+});
+
+describe("chatFieldsFromInputSchemaJson", () => {
+  it("convierte JSON Schema del admin a campos de UI", () => {
+    const schema = {
+      type: "object",
+      required: ["title"],
+      properties: {
+        title: { type: "string", description: "Título" },
+        count: { type: "integer" },
+        done: { type: "boolean" },
+      },
+    };
+    const fields = chatFieldsFromInputSchemaJson(schema);
+    expect(fields).toHaveLength(3);
+    expect(fields[0]).toMatchObject({
+      name: "title",
+      type: "text",
+      label: "title",
+      description: "Título",
+      required: true,
+    });
+    expect(fields[1]).toMatchObject({
+      name: "count",
+      type: "number",
+      required: false,
+    });
+    expect(fields[2]).toMatchObject({
+      name: "done",
+      type: "boolean",
+      required: false,
+    });
+  });
+
+  it("usa enum como select y title como label", () => {
+    const schema = {
+      type: "object",
+      properties: {
+        size: {
+          type: "string",
+          title: "Tamaño",
+          enum: ["S", "M"],
+        },
+      },
+    };
+    const [field] = chatFieldsFromInputSchemaJson(schema);
+    expect(field.type).toBe("select");
+    expect(field.label).toBe("Tamaño");
+    expect(field.options).toEqual([
+      { value: "S", label: "S" },
+      { value: "M", label: "M" },
+    ]);
+  });
+
+  it("acepta formato textarea vía format o x-ui-widget", () => {
+    expect(
+      chatFieldsFromInputSchemaJson({
+        type: "object",
+        properties: { notes: { type: "string", format: "textarea" } },
+      })[0].type,
+    ).toBe("textarea");
+    expect(
+      chatFieldsFromInputSchemaJson({
+        type: "object",
+        properties: { notes: { type: "string", "x-ui-widget": "textarea" } },
+      })[0].type,
+    ).toBe("textarea");
+  });
+
+  it("retrocompatibilidad: wrapper legacy fields[]", () => {
+    const fields = chatFieldsFromInputSchemaJson({
+      fields: [
+        {
+          name: "a",
+          type: "number",
+          label: "A",
+          required: true,
+        },
+      ],
+    });
+    expect(fields[0]).toMatchObject({ name: "a", type: "number", label: "A" });
   });
 });
 
