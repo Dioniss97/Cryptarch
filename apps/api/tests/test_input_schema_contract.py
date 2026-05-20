@@ -2,7 +2,9 @@
 
 import pytest
 from core.domain.input_schema_contract import (
+    ActionPayloadValidationError,
     InputSchemaValidationError,
+    validate_action_payload,
     validate_and_normalize_input_schema_json,
 )
 
@@ -46,3 +48,34 @@ def test_required_must_be_string_list():
         validate_and_normalize_input_schema_json(
             {"type": "object", "properties": {}, "required": [1]},
         )
+
+
+def test_validate_action_payload_accepts_matching_types():
+    schema = {
+        "type": "object",
+        "properties": {"q": {"type": "string"}, "n": {"type": "integer"}},
+        "required": ["q"],
+    }
+    assert validate_action_payload({"q": "hi", "n": 3}, schema) == {
+        "q": "hi",
+        "n": 3,
+    }
+
+
+def test_validate_action_payload_rejects_missing_required():
+    schema = {
+        "type": "object",
+        "properties": {"q": {"type": "string"}},
+        "required": ["q"],
+    }
+    with pytest.raises(ActionPayloadValidationError, match="missing required"):
+        validate_action_payload({}, schema)
+
+
+def test_validate_action_payload_rejects_wrong_type():
+    schema = {
+        "type": "object",
+        "properties": {"flag": {"type": "boolean"}},
+    }
+    with pytest.raises(ActionPayloadValidationError, match="invalid type"):
+        validate_action_payload({"flag": "yes"}, schema)

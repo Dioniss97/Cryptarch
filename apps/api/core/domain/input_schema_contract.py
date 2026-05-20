@@ -16,6 +16,10 @@ class InputSchemaValidationError(ValueError):
     """input_schema_json is not a valid Cryptarch action input schema document."""
 
 
+class ActionPayloadValidationError(ValueError):
+    """User payload does not satisfy the action input_schema_json contract."""
+
+
 def _property_type_ok(raw: Any) -> bool:
     if raw is None:
         return True
@@ -74,3 +78,67 @@ def validate_and_normalize_input_schema_json(raw: Any) -> dict[str, Any] | None:
                 "input_schema_json.required must be an array of strings",
             )
     return raw
+
+
+def _value_matches_property_type(value: Any, expected_type: Any) -> bool:
+    if expected_type is None:
+        return True
+    types: list[str]
+    if isinstance(expected_type, str):
+        types = [expected_type]
+    elif isinstance(expected_type, list):
+        types = [x for x in expected_type if isinstance(x, str)]
+    else:
+        return False
+    for t in types:
+        if t == "string" and isinstance(value, str):
+            return True
+        if t == "boolean" and isinstance(value, bool):
+            return True
+        if t == "integer" and type(value) is int and not isinstance(value, bool):
+            return True
+        if t == "number" and type(value) in (int, float) and not isinstance(value, bool):
+            return True
+        if t == "null" and value is None:
+            return True
+    return False
+
+
+def validate_action_payload(
+    payload: Any, input_schema_json: dict[str, Any] | None
+) -> dict[str, Any]:
+    """Validate execute payload against action input_schema_json. Returns payload dict."""
+    if not isinstance(payload, dict):
+        raise ActionPayloadValidationError("payload must be a JSON object")
+    if input_schema_json is None:
+        return payload
+    if not isinstance(input_schema_json, dict):
+        return payload
+    properties = input_schema_json.get("properties")
+    if properties is not None and not isinstance(properties, dict):
+        properties = {}
+    elif properties is None:
+        properties = {}
+    required = input_schema_json.get("required")
+    if required is not None:
+        if not isinstance(required, list):
+            required = []
+        for key in required:
+            if not isinstance(key, str):
+                continue
+            if key not in payload:
+                raise ActionPayloadValidationError(
+                    f"payload missing required property {key!r}"
+                )
+    for key, value in payload.items():
+        definition = properties.get(key)
+        if not isinstance(definition, dict):
+            continue
+        expected_type = definition.get("type")
+        if expected_type is not None and not _value_matches_property_type(
+            value, expected_type
+        ):
+            raise ActionPayloadValidationError(
+                f"payload property {key!r} has invalid type for schema",
+            )
+    return payload
