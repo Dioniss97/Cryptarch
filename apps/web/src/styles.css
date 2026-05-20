@@ -400,6 +400,18 @@ button.danger {
   grid-template-columns: minmax(220px, 280px) 1fr;
 }
 
+.chat-workspace {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(220px, 280px) 1fr;
+}
+
+@media (max-width: 768px) {
+  .chat-workspace {
+    grid-template-columns: 1fr;
+  }
+}
+
 .connector-list {
   display: grid;
   gap: 8px;
@@ -416,6 +428,15 @@ button.danger {
 .connector-card.selected {
   border-color: #4064f6;
   background: #eef2ff;
+}
+
+.allowed-action-meta {
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    monospace;
+  font-size: 0.75rem;
+  color: #64748b;
+  line-height: 1.35;
 }
 
 .panel.subtle {

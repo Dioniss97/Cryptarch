@@ -96,17 +96,41 @@ describe("smoke routes", () => {
         user: { sub: "user@test", tenant_id: "t1", role: "user" },
       }),
     );
-    fetch.mockImplementation(() =>
-      mockJsonResponse(200, { theme: "system", metadata: {} }),
-    );
+    fetch.mockImplementation((url, options = {}) => {
+      const path = String(url).replace("http://localhost:8000", "");
+      const method = String(options.method || "GET").toUpperCase();
+      if (method === "GET" && path === "/me/preferences") {
+        return mockJsonResponse(200, { theme: "system", metadata: {} });
+      }
+      if (method === "GET" && path === "/actions") {
+        return mockJsonResponse(200, [
+          {
+            id: "a1",
+            name: "Demo",
+            method: "GET",
+            path: "/v1/demo",
+            connector_id: "c1",
+            input_schema_json: { type: "object", properties: {} },
+            input_schema_version: 1,
+            tag_ids: [],
+          },
+        ]);
+      }
+      return mockJsonResponse(500, {
+        detail: `Mock no definido: ${method} ${path}`,
+      });
+    });
 
     renderWithRoute("/chat");
     expect(
-      await screen.findByRole("heading", { name: "Chat MVP" }),
+      await screen.findByRole("heading", { name: "Asistente" }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: "Preferencias" }),
     ).toBeInTheDocument();
+    expect(screen.queryByLabelText("action_id")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Cargar schema/i)).not.toBeInTheDocument();
+    expect(await screen.findByText("Demo")).toBeInTheDocument();
   });
 
   it("renderiza workspace de conectores sin pedir connector_id manual", async () => {

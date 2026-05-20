@@ -1,169 +1,80 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../app/AuthProvider";
 import { api } from "../../shared/apiClient";
-import { ApiErrorBanner, LoadingBlock } from "../../shared/ui";
+import { ApiErrorBanner, EmptyState, LoadingBlock } from "../../shared/ui";
 import { PreferencesPanel } from "../preferences/PreferencesPanel";
-import { chatFieldsFromInputSchemaJson } from "../admin/adminHelpers";
-
-function initialValueByType(type) {
-  if (type === "boolean") return false;
-  return "";
-}
-
-function castValueByType(type, value) {
-  if (type === "number") return Number(value);
-  if (type === "boolean") return Boolean(value);
-  return value;
-}
-
-function FieldRenderer({ field, value, onChange }) {
-  const options = field.options || [];
-  switch (field.type) {
-    case "textarea":
-      return (
-        <textarea
-          rows={4}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-        />
-      );
-    case "number":
-      return (
-        <input
-          type="number"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-        />
-      );
-    case "boolean":
-      return (
-        <input
-          type="checkbox"
-          checked={Boolean(value)}
-          onChange={(e) => onChange(e.target.checked)}
-        />
-      );
-    case "select":
-      return (
-        <select value={value} onChange={(e) => onChange(e.target.value)}>
-          <option value="">--</option>
-          {options.map((opt) => (
-            <option
-              key={String(opt.value ?? opt)}
-              value={String(opt.value ?? opt)}
-            >
-              {opt.label ?? opt.value ?? opt}
-            </option>
-          ))}
-        </select>
-      );
-    case "radio":
-      return (
-        <div className="row">
-          {options.map((opt) => {
-            const optionValue = String(opt.value ?? opt);
-            return (
-              <label key={optionValue}>
-                <input
-                  type="radio"
-                  name={field.name}
-                  checked={String(value) === optionValue}
-                  onChange={() => onChange(optionValue)}
-                />
-                {opt.label ?? opt.value ?? opt}
-              </label>
-            );
-          })}
-        </div>
-      );
-    case "date":
-      return (
-        <input
-          type="date"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-        />
-      );
-    default:
-      return (
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-        />
-      );
-  }
-}
+import { ActionExecutionResult } from "./ActionExecutionResult";
+import { AllowedActionsList } from "./AllowedActionsList";
+import {
+  buildInitialPayload,
+  buildExecutePayload,
+  DynamicActionForm,
+} from "./DynamicActionForm";
 
 export function ChatPage() {
-  const [actionId, setActionId] = useState("");
-  const [schema, setSchema] = useState(null);
+  const [actions, setActions] = useState([]);
+  const [loadingList, setLoadingList] = useState(true);
+  const [selectedAction, setSelectedAction] = useState(null);
   const [payload, setPayload] = useState({});
   const [result, setResult] = useState(null);
-  const [loadingSchema, setLoadingSchema] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const { user, isAdmin, logout } = useAuth();
   const navigate = useNavigate();
 
-  const fields = useMemo(
-    () => chatFieldsFromInputSchemaJson(schema?.input_schema_json),
-    [schema],
-  );
-
-  async function loadSchema(event) {
-    event.preventDefault();
-    setLoadingSchema(true);
+  const loadActions = useCallback(async () => {
+    setLoadingList(true);
     setError(null);
-    setResult(null);
     try {
-      const list = await api.get("/actions");
-      const items = Array.isArray(list) ? list : [];
-      const found = items.find(
-        (a) => String(a?.id ?? "") === String(actionId).trim(),
-      );
-      if (!found) {
-        throw {
-          status: 404,
-          message: "Acción no encontrada en tus permisos o id incorrecto.",
-        };
-      }
-      setSchema(found);
-      const defaults = {};
-      for (const field of chatFieldsFromInputSchemaJson(
-        found?.input_schema_json,
-      )) {
-        defaults[field.name] = initialValueByType(field.type);
-      }
-      setPayload(defaults);
+      const data = await api.get("/actions");
+      setActions(Array.isArray(data) ? data : []);
     } catch (nextError) {
       setError(nextError);
-      setSchema(null);
+      setActions([]);
     } finally {
-      setLoadingSchema(false);
+      setLoadingList(false);
     }
+  }, []);
+
+  useEffect(() => {
+    loadActions();
+  }, [loadActions]);
+
+  function selectAction(action) {
+    setSelectedAction(action);
+    setResult(null);
+    setError(null);
+    const { defaults } = buildInitialPayload(action?.input_schema_json);
+    setPayload(defaults);
   }
 
-  async function executeAction(event) {
-    event.preventDefault();
+  async function executeAction() {
+    if (!selectedAction?.id) return;
     setSubmitting(true);
     setError(null);
     setResult(null);
     try {
-      const payloadObject = {};
-      for (const field of fields) {
-        payloadObject[field.name] = castValueByType(
-          field.type,
-          payload[field.name],
-        );
-      }
-      const execution = await api.post(`/actions/${actionId}/execute`, {
-        payload: payloadObject,
-      });
+      const payloadObject = buildExecutePayload(
+        selectedAction.input_schema_json,
+        payload,
+      );
+      const execution = await api.post(
+        `/actions/${selectedAction.id}/execute`,
+        { payload: payloadObject },
+      );
       setResult(execution);
     } catch (nextError) {
-      setError(nextError);
+      const st = nextError?.status;
+      if (st === 404 || st === 501) {
+        setError({
+          status: st,
+          message:
+            "La ejecución de acciones aún no está disponible. Disponible próximamente (task-08g-bis).",
+        });
+      } else {
+        setError(nextError);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -174,18 +85,19 @@ export function ChatPage() {
       <section className="panel">
         <div className="page-header">
           <div>
-            <h1>Chat MVP</h1>
+            <h1>Asistente</h1>
             <small>
               Usuario: {user?.sub} ({user?.role})
             </small>
           </div>
           <div className="row">
             {isAdmin ? (
-              <button onClick={() => navigate("/admin/users")}>
+              <button type="button" onClick={() => navigate("/admin/users")}>
                 Ir a admin
               </button>
             ) : null}
             <button
+              type="button"
               onClick={async () => {
                 await logout();
                 navigate("/login");
@@ -196,56 +108,56 @@ export function ChatPage() {
           </div>
         </div>
         <ApiErrorBanner error={error} />
-        <form className="row" onSubmit={loadSchema}>
-          <label className="field">
-            action_id
-            <input
-              aria-label="action_id"
-              value={actionId}
-              onChange={(event) => setActionId(event.target.value)}
-              required
-            />
-          </label>
-          <button
-            className="primary"
-            type="submit"
-            disabled={loadingSchema || !actionId}
-          >
-            {loadingSchema ? "Cargando schema..." : "Cargar schema"}
-          </button>
-        </form>
+        <p className="text-sm muted" style={{ marginTop: 0 }}>
+          Elige una acción para rellenar el formulario y ejecutarla.
+        </p>
       </section>
 
-      {loadingSchema ? <LoadingBlock /> : null}
+      {loadingList ? <LoadingBlock label="Cargando acciones…" /> : null}
 
-      {schema ? (
-        <section className="panel">
-          <h2>Formulario dinámico ({schema.input_schema_version || "v1"})</h2>
-          <form className="stack" onSubmit={executeAction}>
-            {fields.map((field) => (
-              <label key={field.name} className="field">
-                {field.label || field.name}
-                <FieldRenderer
-                  field={field}
-                  value={payload[field.name] ?? ""}
-                  onChange={(next) =>
-                    setPayload((prev) => ({ ...prev, [field.name]: next }))
-                  }
-                />
-              </label>
-            ))}
-            <button className="primary" type="submit" disabled={submitting}>
-              {submitting ? "Ejecutando..." : "Ejecutar acción"}
-            </button>
-          </form>
-        </section>
+      {!loadingList && !error && actions.length === 0 ? (
+        <EmptyState
+          title="No hay acciones disponibles"
+          description="Cuando existan acciones en tu espacio, aparecerán aquí para ejecutarlas."
+        />
       ) : null}
 
-      {result ? (
-        <section className="panel">
-          <h2>Resultado</h2>
-          <pre>{JSON.stringify(result, null, 2)}</pre>
-        </section>
+      {!loadingList && !error && actions.length > 0 ? (
+        <div className="chat-workspace">
+          <section className="panel">
+            <h2 style={{ marginTop: 0, fontSize: "1.05rem" }}>Acciones</h2>
+            <AllowedActionsList
+              actions={actions}
+              selectedId={selectedAction?.id}
+              onSelect={selectAction}
+            />
+          </section>
+
+          <section className="panel">
+            {selectedAction ? (
+              <>
+                <h2 style={{ marginTop: 0, fontSize: "1.15rem" }}>
+                  {selectedAction.name?.trim() || "Acción sin nombre"}
+                </h2>
+                <DynamicActionForm
+                  schemaJson={selectedAction.input_schema_json}
+                  schemaVersion={selectedAction.input_schema_version}
+                  payload={payload}
+                  onPayloadChange={setPayload}
+                  onSubmit={executeAction}
+                  submitting={submitting}
+                  submitLabel="Ejecutar"
+                />
+                <ActionExecutionResult result={result} />
+              </>
+            ) : (
+              <EmptyState
+                title="Selecciona una acción"
+                description="Pulsa una acción de la lista para ver el formulario y ejecutarla."
+              />
+            )}
+          </section>
+        </div>
       ) : null}
 
       <PreferencesPanel />
