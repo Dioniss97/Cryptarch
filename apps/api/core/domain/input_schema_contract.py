@@ -97,7 +97,11 @@ def _value_matches_property_type(value: Any, expected_type: Any) -> bool:
             return True
         if t == "integer" and type(value) is int and not isinstance(value, bool):
             return True
-        if t == "number" and type(value) in (int, float) and not isinstance(value, bool):
+        if (
+            t == "number"
+            and type(value) in (int, float)
+            and not isinstance(value, bool)
+        ):
             return True
         if t == "null" and value is None:
             return True

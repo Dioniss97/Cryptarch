@@ -57,9 +57,7 @@ def execute_action_for_user(
     allowed_ids = permission_service.resolve_effective_action_ids(
         permission_port, tenant_id, user_id
     )
-    allowed_keys = {
-        k for aid in allowed_ids if (k := _canonical_key(aid)) is not None
-    }
+    allowed_keys = {k for aid in allowed_ids if (k := _canonical_key(aid)) is not None}
     resolved_key = _canonical_key(action.id)
     if resolved_key is None or resolved_key not in allowed_keys:
         raise ActionNotPermittedError(action_id)

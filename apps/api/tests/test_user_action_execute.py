@@ -115,9 +115,7 @@ def test_execute_requires_auth(client: TestClient):
     assert r.status_code == 401
 
 
-def test_execute_success_stub(
-    client: TestClient, tenant, db_session: Session
-):
+def test_execute_success_stub(client: TestClient, tenant, db_session: Session):
     tag = Tag(id=_id(), tenant_id=tenant.id, name="t")
     db_session.add(tag)
     db_session.flush()
