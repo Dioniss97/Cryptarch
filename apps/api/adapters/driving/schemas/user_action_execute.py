@@ -2,10 +2,10 @@
 
 from typing import Any
 
+from core.application.user_action_execute import ExecuteActionResult
 from pydantic import BaseModel
 
 from adapters.driving.schemas.action import _canonical_str
-from core.application.user_action_execute import ExecuteActionResult
 
 
 class ExecuteActionBody(BaseModel):
