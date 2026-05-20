@@ -10,6 +10,7 @@ from core.application.action import (
     TagNotFoundError,
 )
 from core.domain.action_request_config import RequestConfigValidationError
+from core.domain.input_schema_contract import InputSchemaValidationError
 from dependencies import CurrentUser, get_db, require_admin
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -109,6 +110,12 @@ def create_action(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=str(exc),
         ) from exc
+    except InputSchemaValidationError as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
+        ) from exc
     except ConnectorNotFoundError:
         db.rollback()
         raise HTTPException(
@@ -151,6 +158,12 @@ def update_action(
         )
         db.commit()
     except RequestConfigValidationError as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(exc),
+        ) from exc
+    except InputSchemaValidationError as exc:
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,

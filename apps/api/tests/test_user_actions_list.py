@@ -384,6 +384,8 @@ def test_response_does_not_expose_request_config_or_credentials(
     body = payload[0]
     assert body["method"] == "POST"
     assert body["path"] == "/exec"
+    assert body["input_schema_json"] == {"type": "object"}
+    assert body["input_schema_version"] == "1"
     assert "request_config" not in body
     assert "auth_config" not in body
     assert "base_url" not in body

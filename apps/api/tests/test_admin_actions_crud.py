@@ -493,6 +493,38 @@ def test_create_action_post_with_body_in_config_201(
     assert data["request_config"]["headers"]["Content-Type"] == "application/json"
 
 
+def test_create_action_invalid_input_schema_422(
+    client: TestClient, tenant, admin_user, connector
+):
+    r = client.post(
+        "/admin/actions",
+        headers=_auth_headers(tenant.id, admin_user.id),
+        json={
+            "connector_id": str(uuid.UUID(connector.id)),
+            "method": "GET",
+            "path": "/items",
+            "input_schema_json": {"type": "string"},
+        },
+    )
+    assert r.status_code == 422
+
+
+def test_create_action_rejects_legacy_fields_wrapper_422(
+    client: TestClient, tenant, admin_user, connector
+):
+    r = client.post(
+        "/admin/actions",
+        headers=_auth_headers(tenant.id, admin_user.id),
+        json={
+            "connector_id": str(uuid.UUID(connector.id)),
+            "method": "GET",
+            "path": "/items",
+            "input_schema_json": {"fields": [{"name": "x", "type": "text"}]},
+        },
+    )
+    assert r.status_code == 422
+
+
 def test_create_action_persists_input_schema_roundtrip(
     client: TestClient, tenant, admin_user, connector
 ):

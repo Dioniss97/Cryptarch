@@ -71,6 +71,86 @@ export function extractSchemaFields(schema) {
   }));
 }
 
+/**
+ * Canonical API/admin storage: JSON Schema object (`type`, `properties`, `required`).
+ * Chat dynamic UI fields: `{ name, type, label, description?, options?, required? }`.
+ * Also accepts legacy `{ fields: [...] }` from older clients when reading only.
+ */
+export function chatFieldsFromInputSchemaJson(raw) {
+  if (raw == null || typeof raw !== "object") return [];
+  if (Array.isArray(raw.fields)) {
+    return raw.fields
+      .filter((f) => f && String(f.name || "").trim())
+      .map((f) => ({
+        name: String(f.name).trim(),
+        type: f.type || "text",
+        label:
+          f.label != null && String(f.label).trim() !== ""
+            ? String(f.label).trim()
+            : String(f.name).trim(),
+        description: f.description || "",
+        required: Boolean(f.required),
+        ...(Array.isArray(f.options) && f.options.length > 0
+          ? { options: f.options }
+          : {}),
+      }));
+  }
+
+  const properties = raw.properties;
+  if (
+    !properties ||
+    typeof properties !== "object" ||
+    Array.isArray(properties)
+  )
+    return [];
+
+  const requiredSet = new Set(Array.isArray(raw.required) ? raw.required : []);
+  return Object.entries(properties).map(([name, definition]) => {
+    const d =
+      definition && typeof definition === "object" && !Array.isArray(definition)
+        ? definition
+        : {};
+    const rawType = d.type;
+    const jsType = Array.isArray(rawType)
+      ? rawType.find((t) => t && t !== "null")
+      : rawType;
+
+    let widgetType = "text";
+    let options;
+    const title =
+      typeof d.title === "string" && d.title.trim() !== ""
+        ? d.title.trim()
+        : name;
+
+    if (jsType === "boolean") {
+      widgetType = "boolean";
+    } else if (jsType === "number" || jsType === "integer") {
+      widgetType = "number";
+    } else if (jsType === "string" || jsType === undefined || jsType === null) {
+      if (Array.isArray(d.enum) && d.enum.length > 0) {
+        widgetType = "select";
+        options = d.enum.map((v) => ({
+          value: v,
+          label: String(v),
+        }));
+      } else if (d.format === "textarea" || d["x-ui-widget"] === "textarea") {
+        widgetType = "textarea";
+      } else {
+        widgetType = "text";
+      }
+    }
+
+    return {
+      name,
+      type: widgetType,
+      label: title,
+      description: typeof d.description === "string" ? d.description : "",
+      required: requiredSet.has(name),
+      ...(options ? { options } : {}),
+    };
+  });
+}
+
 export function extractFileName(path) {
   if (!path) return "Documento";
   const normalized = String(path).replaceAll("\\", "/");

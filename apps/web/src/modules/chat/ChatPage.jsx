@@ -4,14 +4,11 @@ import { useAuth } from "../../app/AuthProvider";
 import { api } from "../../shared/apiClient";
 import { ApiErrorBanner, LoadingBlock } from "../../shared/ui";
 import { PreferencesPanel } from "../preferences/PreferencesPanel";
+import { chatFieldsFromInputSchemaJson } from "../admin/adminHelpers";
 
 function initialValueByType(type) {
   if (type === "boolean") return false;
   return "";
-}
-
-function normalizeFields(schema) {
-  return Array.isArray(schema?.fields) ? schema.fields : [];
 }
 
 function castValueByType(type, value) {
@@ -111,7 +108,7 @@ export function ChatPage() {
   const navigate = useNavigate();
 
   const fields = useMemo(
-    () => normalizeFields(schema?.input_schema_json),
+    () => chatFieldsFromInputSchemaJson(schema?.input_schema_json),
     [schema],
   );
 
@@ -121,10 +118,22 @@ export function ChatPage() {
     setError(null);
     setResult(null);
     try {
-      const data = await api.get(`/actions/${actionId}/input-schema`);
-      setSchema(data);
+      const list = await api.get("/actions");
+      const items = Array.isArray(list) ? list : [];
+      const found = items.find(
+        (a) => String(a?.id ?? "") === String(actionId).trim(),
+      );
+      if (!found) {
+        throw {
+          status: 404,
+          message: "Acción no encontrada en tus permisos o id incorrecto.",
+        };
+      }
+      setSchema(found);
       const defaults = {};
-      for (const field of normalizeFields(data?.input_schema_json)) {
+      for (const field of chatFieldsFromInputSchemaJson(
+        found?.input_schema_json,
+      )) {
         defaults[field.name] = initialValueByType(field.type);
       }
       setPayload(defaults);
