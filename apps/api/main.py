@@ -4,6 +4,7 @@ from adapters.driven.persistence.dev_seed import ensure_dev_admin
 from adapters.driving.http.actions.routes import router as actions_router
 from adapters.driving.http.admin.routes import router as admin_router
 from adapters.driving.http.auth.routes import router as auth_router
+from adapters.driving.http.me.routes import router as me_router
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -27,6 +28,7 @@ app.add_middleware(
 )
 app.include_router(auth_router)
 app.include_router(actions_router)
+app.include_router(me_router)
 app.include_router(admin_router)
 
 
