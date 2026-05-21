@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../app/AuthProvider";
+import { PreferencesPanel } from "../preferences/PreferencesPanel";
 
 export function ProfileMenu() {
   const { user, logout } = useAuth();
@@ -17,8 +18,10 @@ export function ProfileMenu() {
         </span>
       </summary>
       <div className="profile-popover">
+        <PreferencesPanel />
         <button
           type="button"
+          className="profile-logout"
           onClick={async () => {
             await logout();
             navigate("/login");

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../app/AuthProvider";
 import { api } from "../../shared/apiClient";
 import { ApiErrorBanner, EmptyState, LoadingBlock } from "../../shared/ui";
-import { PreferencesPanel } from "../preferences/PreferencesPanel";
+import { ProfileMenu } from "../admin/ProfileMenu";
 import { ActionExecutionResult } from "./ActionExecutionResult";
 import { AllowedActionsList } from "./AllowedActionsList";
 import {
@@ -20,7 +20,7 @@ export function ChatPage() {
   const [result, setResult] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
-  const { user, isAdmin, logout } = useAuth();
+  const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
 
   const loadActions = useCallback(async () => {
@@ -90,21 +90,13 @@ export function ChatPage() {
               Usuario: {user?.sub} ({user?.role})
             </small>
           </div>
-          <div className="row">
+          <div className="row page-header-actions">
             {isAdmin ? (
               <button type="button" onClick={() => navigate("/admin/users")}>
                 Ir a admin
               </button>
             ) : null}
-            <button
-              type="button"
-              onClick={async () => {
-                await logout();
-                navigate("/login");
-              }}
-            >
-              Logout
-            </button>
+            <ProfileMenu />
           </div>
         </div>
         <ApiErrorBanner error={error} />
@@ -159,8 +151,6 @@ export function ChatPage() {
           </section>
         </div>
       ) : null}
-
-      <PreferencesPanel />
     </div>
   );
 }
