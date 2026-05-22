@@ -22,7 +22,7 @@ Regla base del proyecto:
 - **Confluence**: futura zona cero de verdad no técnica: visión, producto, dominio, MVP, flujos y decisiones de negocio.
 - **Jira (`CRYPT`)**: backlog y ejecución: épicas, historias, tareas, bugs, sprints, estados, prioridades y trabajo para agentes.
 - **Engram `tasks/CRYPT-*`**: memoria operativa para agentes (decisiones, IDs, sesiones, gotchas, contexto de ejecución).
-- **Rama `task/CRYPT-123-slug`**: trabajo normal.
+- **Rama `CRYPT-123-slug`**: trabajo normal (Conventional Commits + prefijo Jira en commits y titulo de PR; sin prefijo `task/`).
 - **PR a `develop`**: integracion.
 - **GitHub**: código, ramas, PRs, reviews y CI. No usar GitHub Issues como backlog de producto.
 
@@ -36,7 +36,7 @@ Para cambios puramente documentales, `docs/<slug>` sigue siendo una excepcion op
 |-----------|------------|-----------------|
 | **issue-triage** | [`.cursor/agents/issue-triage.md`](../../.cursor/agents/issue-triage.md) | Convertir notas, hallazgos o bugs en issues Jira (`CRYPT-*`); proponer tipo/estado/prioridad; crear/editar Jira con MCP solo cuando se pida explicitamente. |
 | **test-runner** | [`.cursor/agents/test-runner.md`](../../.cursor/agents/test-runner.md) | Ejecutar la suite de tests (pytest, etc.) y reportar resultado (pass/fail, resumen de fallos). |
-| **git-pr** | [`.cursor/agents/git-pr.md`](../../.cursor/agents/git-pr.md) | Rama por task, commits (Conventional Commits), push y apertura/actualizacion de PRs hacia `develop`. |
+| **git-pr** | [`.cursor/agents/git-pr.md`](../../.cursor/agents/git-pr.md) | Rama `CRYPT-*-slug`, commits y titulo de PR (`CRYPT-* type(scope): …`), push y PRs hacia `develop`. |
 | **debugger** | [`.cursor/agents/debugger.md`](../../.cursor/agents/debugger.md) | Cuando un test falla: recibir contexto del orquestador, diagnosticar, aplicar fix y reportar. No lanza tests. |
 | **ai-worker** | [`.cursor/agents/ai-worker.md`](../../.cursor/agents/ai-worker.md) | Ejecutar la task de implementacion que asigne el orquestador (codigo, tests iniciales, refactors). |
 | **ci-triage** | [`.cursor/agents/ci-triage.md`](../../.cursor/agents/ci-triage.md) | Tras la PR: consultar checks de Actions con `gh`, leer logs de jobs fallidos, clasificar el fallo, indicar reproducibilidad local y proponer siguiente accion al orquestador. Solo lectura; no escribe Engram ni aplica fixes. |
@@ -52,7 +52,7 @@ Para cambios puramente documentales, `docs/<slug>` sigue siendo una excepcion op
 ## Flujo tipico (task de desarrollo)
 
 1. **Orquestador** recibe “siguiente tarea” o un Jira key -> lee Jira `CRYPT-*`, recupera/crea contexto en Engram `tasks/CRYPT-*` y prepara el trabajo.
-2. **Antes de implementar**, el orquestador invoca **git-pr** para crear o seleccionar la rama de trabajo `task/CRYPT-123-slug` (o `docs/<slug>` si es doc-only). Este paso es obligatorio: no se empieza a editar codigo en una task de ejecucion sin rama preparada.
+2. **Antes de implementar**, el orquestador invoca **git-pr** para crear o seleccionar la rama `CRYPT-123-slug` (o `docs/<slug>` si es doc-only). Este paso es obligatorio: no se empieza a editar codigo en una task de ejecucion sin rama preparada.
 3. **Orquestador** invoca **ai-worker** con la mision (ej. “implementar `CRYPT-9`”) y el contexto necesario (archivos, criterios, enlaces Jira/Engram).
 4. **Ai-worker** entrega codigo y/o tests iniciales.
 5. **Orquestador** invoca **test-runner** para ejecutar los tests.

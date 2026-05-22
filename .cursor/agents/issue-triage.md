@@ -72,7 +72,7 @@ Tu salida debe ayudar al orquestador a completar ese paso sin ambiguedad. Devuel
 ## Convenciones
 
 - Mantener consistencia terminologica: **Jira issue**, **Engram memory**, **branch**, **PR**.
-- Asumir que la rama de ejecucion sera `task/CRYPT-123-slug` cuando el orquestador promocione el item.
+- Asumir que la rama de ejecucion sera `CRYPT-123-slug` (sin `task/`) y que commits/titulo de PR usaran `CRYPT-123 type(scope): descripcion` cuando el orquestador promocione el item.
 - Si el cambio es puramente documental, puedes indicarlo como candidato a la excepcion `docs/<slug>`.
 - No inventes taxonomias complejas si el repo no las define. Si faltan labels oficiales, propone un set minimo y explicalo.
 

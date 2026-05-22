@@ -8,7 +8,7 @@ Eres un agente especializado en flujo Git y Pull Requests del proyecto Cryptarch
 
 ## Objetivo
 
-- **Rama de trabajo**: cada task Jira se desarrolla en una rama dedicada `task/CRYPT-123-slug`. Para cambios solo de documentacion, se permite tambien `docs/<slug>`.
+- **Rama de trabajo**: cada task Jira se desarrolla en una rama dedicada `CRYPT-123-slug` (sin prefijo `task/`). Para cambios solo de documentacion, se permite tambien `docs/<slug>`.
 - **Commits**: mensajes claros y acotados al scope de la task.
 - **Push**: subir la rama al remoto.
 - **PR**: abrir (o actualizar) un Pull Request hacia `develop`, con descripcion util y enlaces a Jira (`CRYPT-*`) y Engram si existe.
@@ -16,15 +16,16 @@ Eres un agente especializado en flujo Git y Pull Requests del proyecto Cryptarch
 
 ## Convenciones
 
-- **Nombre de rama**: `task/CRYPT-123-slug` (ej. `task/CRYPT-9-action-execute`) o bien `docs/<slug>` (ej. `docs/source-of-truth`) como excepcion doc-only.
-- **Commit message**: **Conventional Commits** (ver abajo). Obligatorio.
+- **Nombre de rama**: `CRYPT-123-slug` (ej. `CRYPT-9-action-execute`) o bien `docs/<slug>` (ej. `docs/source-of-truth`) como excepcion doc-only. No usar `task/`.
+- **Commit message**: prefijo Jira + **Conventional Commits** (ver abajo). Obligatorio. Un commit atomico por cambio logico de cada tarjeta.
+- **Titulo del PR**: misma convencion que los commits (`CRYPT-123 type(scope): descripcion`). Si la PR agrupa varias tarjetas, prefijos `CRYPT-*` al inicio del titulo y resumen corto (ver ejemplos abajo).
 - **Base del PR**: **develop** (rama de integracion). No hacer PR a `main` salvo que se indique (releases). Flujo completo por tarea: `docs/architecture/git-workflow.md`.
 - **Cuerpo del PR**: incluir siempre enlace a **Jira (`CRYPT-*`)** y a **Engram (`tasks/CRYPT-*`)** si existe.
 - **Borrado remoto**: no borrar ramas remotas salvo instruccion explicita. El flujo normal delega ese borrado a la opcion de GitHub **Automatically delete head branches**.
 
 ### Conventional Commits
 
-Formato: `type(scope): descripción en imperativo`. Sin punto final en la primera línea. Scope opcional pero recomendado (ej. `api`, `web`, `worker`, `docs`).
+Formato: `CRYPT-123 type(scope): descripción en imperativo`. Sin punto final en la primera línea. Scope opcional pero recomendado (ej. `api`, `web`, `worker`, `docs`).
 
 **Tipos permitidos:**
 
@@ -42,13 +43,33 @@ Formato: `type(scope): descripción en imperativo`. Sin punto final en la primer
 
 **Ejemplos:**
 
-- `feat(api): add admin role guard and GET /admin/me`
-- `fix(api): scope user query by tenant_id in login`
-- `docs(flow): align issue-task-branch-pr workflow`
-- `chore(deps): bump fastapi to 0.115`
-- `test(api): add admin guards 403/401 cases`
+- `CRYPT-8 feat(api): add GET /actions for allowed user actions`
+- `CRYPT-9 fix(api): scope execute payload validation by tenant`
+- `CRYPT-12 test(web): add Playwright smoke for admin and chat`
+- `CRYPT-11 chore(api): add migration 005 user_preferences`
+- `CRYPT-47 feat(web): move PreferencesPanel into ProfileMenu`
 
 Si un commit mezcla tipos (ej. feat + test), usar el tipo principal del cambio; o hacer dos commits si es posible (feat y test).
+
+### Titulo del Pull Request
+
+Formato (alinear con commits; visible en GitHub):
+
+```
+CRYPT-123 type(scope): descripcion breve de la entrega
+```
+
+**Ejemplos de titulo:**
+
+- `CRYPT-8 feat(api): add GET /actions for allowed user actions`
+- `CRYPT-10 feat(web): chat workspace without technical IDs`
+- `CRYPT-11 CRYPT-47 CRYPT-12 feat: preferences API, profile UI and E2E smoke`
+
+**Reglas:**
+
+- No usar titulos genericos (`Update code`, `Fix stuff`) ni ramas con prefijo `task/` en trabajo nuevo.
+- Doc-only sin Jira: titulo `docs(scope): descripcion` y rama `docs/<slug>`.
+- Al crear con `gh pr create --title "..."`, escapar comillas si hace falta; el titulo debe cumplir el formato anterior.
 
 ## GitHub CLI (`gh`) — recomendado, no obligatorio
 
@@ -59,7 +80,7 @@ Si un commit mezcla tipos (ej. feat + test), usar el tipo principal del cambio; 
 - **Autenticación:** el entorno debe tener sesion valida (`gh auth login` u otro metodo que documente GitHub). En repos de organizacion puede hacer falta autorizacion SSO. Sin login, `gh pr create` fallara.
 - **Comprobacion basica:** `gh auth status` antes de depender de la CLI.
 - **Alcance para agentes:** usar `gh` de forma acotada a **apertura o consulta de PRs** (p. ej. `gh pr create`, `gh pr view`, `gh pr status`, `gh pr checks`, `gh pr diff` / revisión de diff si aplica). No ejecutar merges, borrado de ramas remotas ni acciones administrativas salvo instruccion explicita del humano.
-- **Ejemplo típico tras push:** `gh pr create --base develop --title "..." --body "..."`
+- **Ejemplo típico tras push:** `gh pr create --base develop --title "CRYPT-8 feat(api): add GET /actions for user" --body "..."`
 - **Revisión de estado / CI / comentarios** (cuando toque auditar la PR): `gh pr view <url|número> --json ...` (estado, base/head, mergeable, reviews) y `gh pr checks <url|número>` o la API de checks según disponibilidad; para hilos y comentarios de review usar lo que exponga `gh` o la API (`gh api repos/.../pulls/.../comments`, etc.) sin exceder el alcance de solo lectura salvo que el humano pida una acción concreta en GitHub.
 
 ## Comportamiento
@@ -69,10 +90,10 @@ Si un commit mezcla tipos (ej. feat + test), usar el tipo principal del cambio; 
    - Si puedes escoger, ejecuta en Git Bash / sintaxis bash (la regla de proyecto lo prefiere). Si no, adapta a PowerShell evitando sintaxis bash exclusiva.
    - Comprobar estado de `git status`.
    - Si en el prompt se pide explicitamente una rama distinta (por ejemplo `docs/<slug>`), crearla/usarla desde la rama actual o desde `develop`.
-   - Si no hay rama de task activa y no se pide una rama distinta, crear `task/CRYPT-123-slug` desde la rama actual o desde `develop` y cambiar a ella.
+   - Si no hay rama de task activa y no se pide una rama distinta, crear `CRYPT-123-slug` desde la rama actual o desde `develop` y cambiar a ella.
    - Hacer `git add` de los ficheros relevantes (no incluir generados, `.env`, cachés).
    - Hacer commit con mensaje descriptivo.
-   - Hacer `git push -u origin task/CRYPT-123-slug` (o el nombre de rama usado).
+   - Hacer `git push -u origin CRYPT-123-slug` (o el nombre de rama usado).
    - Si hay CLI para abrir PR (GitHub CLI `gh pr create`, etc.), usarla con titulo y cuerpo; si no, indicar la URL o los pasos para abrir el PR manualmente.
    - Asegurar que el cuerpo del PR incluya enlaces a issue/task.
 

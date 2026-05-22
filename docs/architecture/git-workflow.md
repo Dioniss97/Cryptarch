@@ -8,7 +8,8 @@
 
 | Seccion | Para que sirve |
 |---|---|
-| `## Modelo de ramas` | Ver estrategia de ramas (`develop`, `main`, task). |
+| `## Modelo de ramas` | Ver estrategia de ramas (`develop`, `main`, `CRYPT-*-slug`). |
+| `## Convenciones de PR` | Titulo y cuerpo alineados con Jira y Conventional Commits. |
 | `## Flujo Jira -> Engram -> branch -> PR` | Ejecutar el flujo de entrega sin mezclar backlog y contexto operativo. |
 | `## Convenciones de commits` | Mantener mensajes consistentes y legibles. |
 | `## GitHub CLI (gh) recomendado` | Aclarar el uso permitido de `gh` para PRs y CI. |
@@ -22,7 +23,7 @@ Documento de referencia para agentes y humanos: ciclo de trabajo que parte del b
 |------|-----|
 | **main** | Estable; listo para produccion. Solo se actualiza por merge desde `develop` al hacer release. |
 | **develop** | Integracion. Las ramas de trabajo se crean desde `develop` y el PR apunta a `develop`. |
-| **task/CRYPT-123-slug** | Rama normal de trabajo por Jira task. Se crea desde `develop`, se usa para implementar `CRYPT-*` y se integra por PR a `develop`. |
+| **CRYPT-123-slug** | Rama normal de trabajo por Jira task (sin prefijo `task/`). Se crea desde `develop`, implementa `CRYPT-*` y se integra por PR a `develop`. |
 | **docs/<slug>** | Excepcion opcional para cambios puramente documentales cuando no merece una task de ejecucion completa. |
 
 ## Flujo Jira -> Engram -> branch -> PR
@@ -34,7 +35,7 @@ Documento de referencia para agentes y humanos: ciclo de trabajo que parte del b
    Cuando el item pasa a ejecucion, el orquestador crea o actualiza `tasks/CRYPT-*` en Engram y enlaza el issue Jira. Jira mantiene estado; Engram conserva contexto, decisiones y outcome para agentes.
 
 3. **Crear rama**  
-   Crear `task/CRYPT-123-slug` desde `develop` y cambiar a ella. Si el cambio es solo documental y no requiere task, se permite `docs/<slug>`.
+   Crear `CRYPT-123-slug` desde `develop` y cambiar a ella. Si el cambio es solo documental y no requiere task, se permite `docs/<slug>`.
    Este paso es **obligatorio antes de implementar**: el orquestador debe pedir a `git-pr` que cree o seleccione la rama de trabajo antes de invocar a `ai-worker`.
 
 4. **Trabajar**  
@@ -47,13 +48,13 @@ Documento de referencia para agentes y humanos: ciclo de trabajo que parte del b
    El orquestador invoca **debugger** con el reporte del fallo. Tras cada fix, se vuelve a **test-runner** hasta que todo pase.
 
 7. **Commits legibles**  
-   Hacer commit(s) con mensajes claros y acotados al scope de la task. Usar **Conventional Commits** sin prefijo de sprint. Preferir un commit por cambio logico; evitar megacommits.
+   Mensajes **Conventional Commits** con prefijo Jira: `CRYPT-123 type(scope): descripcion`. Un commit por cambio logico de cada tarjeta; evitar megacommits. No usar el prefijo de rama antiguo `task/` en ramas nuevas.
 
 8. **Push**  
-   Subir la rama al remoto (`git push -u origin task/CRYPT-123-slug`). No hacer force push salvo indicacion explicita.
+   Subir la rama al remoto (`git push -u origin CRYPT-123-slug`). No hacer force push salvo indicacion explicita.
 
 9. **Abrir o actualizar PR**  
-   Abrir Pull Request hacia **develop** (no hacia `main`). El cuerpo del PR debe enlazar a Jira `CRYPT-*` y a Engram `tasks/CRYPT-*` si existe. El orquestador puede invocar **git-pr** para rama, commit, push y PR.
+   Abrir Pull Request hacia **develop** (no hacia `main`). El **titulo** sigue la misma convencion que los commits (ver [Convenciones de PR](#convenciones-de-pr)). El cuerpo enlaza Jira `CRYPT-*` y Engram `tasks/CRYPT-*` si existe. El orquestador puede invocar **git-pr** para rama, commit, push y PR.
 
 10. **Verificar CI en GitHub**  
    Una PR abierta **no cierra** la task por si sola. El orquestador invoca **ci-triage** para revisar los checks de GitHub Actions (consulta con `gh`, logs si fallan, clasificacion y siguiente paso). Mantener Jira/Engram en progreso hasta que los checks relevantes esten **verdes** o la task pase a `blocked` con motivo explicito (permisos, infra, decision humana). Cuando CI este verde, entonces si: actualizar Jira y `tasks/CRYPT-*` con What / Why / Where / Learned y estado final. El humano revisa y mergea el PR en GitHub.
@@ -61,8 +62,25 @@ Documento de referencia para agentes y humanos: ciclo de trabajo que parte del b
 ## Convencion de enlazado
 
 - **Jira -> Engram**: guardar en `tasks/CRYPT-*` el enlace o key de Jira.
-- **Jira -> Branch**: usar `task/CRYPT-123-slug`.
+- **Jira -> Branch**: `CRYPT-123-slug` (clave Jira + slug corto en kebab-case). **No** usar `task/CRYPT-123-slug` (convencion obsoleta; ramas historicas pueden conservarla hasta borrarse).
+- **Jira -> Commit**: `CRYPT-123 type(scope): descripcion` (Conventional Commits).
+- **Jira -> PR titulo**: misma forma que el commit principal o un resumen de la entrega (ver abajo).
 - **PR -> Jira/Engram**: incluir ambos enlaces en el cuerpo del PR.
+
+## Convenciones de PR
+
+**Titulo** (obligatorio, primera linea visible en GitHub):
+
+```
+CRYPT-123 type(scope): descripcion breve de la entrega
+```
+
+- Misma gramatica que los commits: prefijo `CRYPT-*`, tipo conventional (`feat`, `fix`, `docs`, `chore`, `test`, …), scope opcional.
+- **Una tarjeta**: titulo con esa clave (ej. `CRYPT-8 feat(api): add GET /actions for user`).
+- **Varias tarjetas en la misma PR**: listar claves al inicio, luego tipo y resumen (ej. `CRYPT-11 CRYPT-47 CRYPT-12 feat: user preferences API, profile UI and E2E smoke`).
+- **Solo documentacion** sin tarjeta Jira: rama `docs/<slug>` y titulo `docs(scope): descripcion` (sin prefijo `CRYPT-` si no hay issue).
+
+**Cuerpo**: plantilla minima (enlaces + resumen + testing). No sustituye el titulo estructurado.
 
 Plantilla minima recomendada para el cuerpo del PR:
 
@@ -81,7 +99,7 @@ Plantilla minima recomendada para el cuerpo del PR:
 
 ## Resumen en una linea
 
-Por cada item ejecutable: **Jira `CRYPT-*` -> contexto Engram `tasks/CRYPT-*` -> rama `task/CRYPT-*-slug` -> trabajar -> testear -> [debug -> testear]* -> commits legibles -> push -> PR a `develop` -> ci-triage (checks CI) -> [test-runner/debugger -> git-pr -> ci-triage]* hasta verde o bloqueo -> entonces `done` en Jira/Engram**.
+Por cada item ejecutable: **Jira `CRYPT-*` -> contexto Engram `tasks/CRYPT-*` -> rama `CRYPT-*-slug` -> trabajar -> testear -> [debug -> testear]* -> commits atomizados por tarjeta -> push -> PR a `develop` -> ci-triage (checks CI) -> [test-runner/debugger -> git-pr -> ci-triage]* hasta verde o bloqueo -> entonces `done` en Jira/Engram**.
 
 ## Donde se implementa
 
@@ -91,15 +109,25 @@ Por cada item ejecutable: **Jira `CRYPT-*` -> contexto Engram `tasks/CRYPT-*` ->
 
 ## Convenciones de commits
 
-Formato obligatorio:
-- `type(scope): descripcion en imperativo`
-- Ejemplo: `feat(web): add guided connector action builder`
+Formato obligatorio (un commit por cambio logico; prefijo Jira siempre):
+
+```
+CRYPT-123 type(scope): descripcion en imperativo
+```
+
+Ejemplos:
+- `CRYPT-11 feat(api): add GET/PATCH /me/preferences`
+- `CRYPT-12 test(web): add Playwright smoke for admin and chat`
+- `CRYPT-47 fix(web): apply theme from preferences in ProfileMenu`
+- `CRYPT-55 docs: document input_schema_json contract`
 
 Reglas:
-- `type` debe ser uno de: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `style`, `perf`, `ci`.
-- `scope` opcional pero recomendado (`api`, `web`, `worker`, `docs`).
-- Tras `type(scope)` debe ir `:` y una descripcion breve en imperativo, sin punto final.
-- Si el commit mezcla tipos, usar el tipo principal o separar en varios commits.
+- **Prefijo**: clave Jira de la tarjeta que cubre el cambio (`CRYPT-*`).
+- **type**: `feat` (feature), `fix`, `docs`, `chore`, `refactor`, `test`, `style`, `perf`, `ci`.
+- **scope** opcional pero recomendado (`api`, `web`, `worker`, `docs`).
+- Descripcion breve en imperativo, sin punto final.
+- **Atomizar**: si una rama agrupa varias tarjetas (p. ej. CRYPT-11 + CRYPT-47 + CRYPT-12), un commit por tarjeta/cambio principal; no megacommits sin prefijo Jira.
+- Si un commit mezcla tipos de la misma tarjeta, usar el tipo principal o separar en varios commits.
 
 Detalle completo en [`.cursor/agents/git-pr.md`](../../.cursor/agents/git-pr.md).
 

@@ -103,7 +103,7 @@ Así se mantiene un único escritor y la arquitectura no se fragmenta entre agen
 | ai-worker   | ❌ | ✅ Solo con referencias dadas por orquestador | Implementa; lee tarea y criterios por ID/key. |
 | debugger    | ❌ | ✅ Solo con referencias dadas por orquestador | Corrige fallos; lee brief del fallo por ID/key. |
 | test-runner | ❌ | ✅ Opcional (scope o task ref) | Ejecuta tests; reporta. |
-| git-pr      | ❌ | ✅ Opcional (task ref para PR) | Rama `task/CRYPT-*-slug`, commit, push, PR a `develop`. |
+| git-pr      | ❌ | ✅ Opcional (task ref para PR) | Rama `CRYPT-*-slug`, commits/titulo PR `CRYPT-* type(scope): …`, push, PR a `develop`. |
 | ci-triage   | ❌ | ✅ Opcional (`tasks/CRYPT-*` como contexto de lectura si aplica) | Consulta checks y logs de CI de la PR con `gh`; clasifica fallos y recomienda `test-runner`, `debugger`, `git-pr` o bloqueo; no aplica fixes. |
 | architecture-reviewer (opcional) | ❌ | ✅ Solo con referencias dadas por orquestador | Analiza estructura/patrones y reporta; el orquestador documenta y decide. |
 

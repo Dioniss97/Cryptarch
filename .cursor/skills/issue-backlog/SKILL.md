@@ -22,7 +22,7 @@ No la uses para implementar producto. **Jira gobierna backlog/estado**; **Engram
 - **Confluence**: futura zona cero de verdad no técnica.
 - **Jira issue (`CRYPT-*`)**: unidad de backlog/ejecución (Epic, Historia, Tarea, Error, Subtask).
 - **Engram task memory**: memoria operativa `tasks/<jira_key>`.
-- **Branch**: `task/<jira_key>-slug` para trabajo normal.
+- **Branch**: `<jira_key>-slug` (ej. `CRYPT-123-slug`; sin prefijo `task/`).
 - **PR**: siempre hacia `develop`.
 
 Excepcion opcional: `docs/<slug>` para cambios puramente documentales si no compensa abrir una task de ejecucion completa.
@@ -71,7 +71,7 @@ Cuando un issue Jira pasa a ejecucion:
 3. Si el triage recomendo separacion por capa, el orquestador crea **tasks distintas en Engram** y documenta ahi la division, dependencias y alcance de cada una.
 4. El orquestador marca `Status: in_progress`.
 5. La implementacion va por `ai-worker`.
-6. El cierre va por rama `task/<jira_key>-slug` y PR a `develop`.
+6. El cierre va por rama `CRYPT-123-slug`, commits `CRYPT-123 type(scope): …` y PR (titulo alineado) a `develop`.
 
 Desde este punto, **Jira mantiene el estado de ejecución** y Engram conserva contexto/outcome para agentes.
 
@@ -81,7 +81,7 @@ Mantener siempre el hilo completo:
 
 - **Jira**: `CRYPT-*` referencia el problema o iniciativa.
 - **Engram**: `tasks/CRYPT-*` enlaza contexto operativo.
-- **Branch**: `task/CRYPT-*-slug`.
+- **Branch**: `CRYPT-*-slug`. **Commits/PR**: `CRYPT-* type(scope): descripcion`.
 - **PR**: incluir `Jira: CRYPT-123` y `Engram: tasks/CRYPT-123` en el cuerpo.
 
 Plantilla minima recomendada para PR:

@@ -11,7 +11,8 @@ alwaysApply: true
 - **Jira (`CRYPT`)**: backlog y ejecución: épicas, historias, tareas, bugs, sprints, estados, prioridades y trabajo para agentes.
 - **Engram**: memoria operativa de agentes: decisiones, convenciones, IDs, sesiones, gotchas y resúmenes de ejecución.
 - **GitHub**: código, ramas, PRs, reviews y CI. **No usar GitHub Issues como backlog de producto**.
-- **Ramas**: `task/CRYPT-123-slug` para trabajo normal; `docs/<slug>` solo como excepcion documentaria si encaja.
+- **Ramas**: `CRYPT-123-slug` para trabajo normal (sin prefijo `task/`); `docs/<slug>` solo como excepcion documentaria si encaja.
+- **Commits**: `CRYPT-123 type(scope): descripcion` — un commit atomico por cambio logico de cada tarjeta.
 
 Los `.md` de sprints antiguos fueron experimentales; no son fuente de planificación. En Cursor no hay comandos slash; usar lenguaje natural: "tarea CRYPT-123", "siguiente tarea", "digiere la doc de la API", "guarda este descubrimiento".
 
@@ -33,7 +34,7 @@ Cuando pidan **empezar una tarea** o mencionen un task ID (ej. "task CRYPT-9", "
 2. Leer la tarjeta en Jira y buscar en Engram `topic_key`: `tasks/<jira_key>`. Si no existe, crear memoria operativa con contexto de la tarea y `Status: pending`.
 3. **Poner en la memoria** `Status: in_progress` (actualizar la misma observación con topic_key).
 4. Recuperar contexto útil desde Engram: `sprints/*`, `tasks/*`, `docs/*`, `knowledge/*` (mem_search, luego mem_get_observation si hace falta).
-5. **Antes de implementar**, delegar en `git-pr` la creación o selección de la rama `task/<jira_key>-slug` (o `docs/<slug>` si aplica). No empezar una task de ejecución sin rama preparada.
+5. **Antes de implementar**, delegar en `git-pr` la creación o selección de la rama `<jira_key>-slug` (ej. `CRYPT-123-slug`; sin `task/`) o `docs/<slug>` si aplica. Commits y título de PR: `CRYPT-123 type(scope): descripción`. No empezar una task de ejecución sin rama preparada.
 6. Dar un resumen técnico breve antes de empezar.
 7. Durante el trabajo: guardar descubrimientos reutilizables en `knowledge/<topic>`.
 8. Al terminar trabajo local: tests pasando; delega el commit/PR a `git-pr` (no ejecutes `git` a mano). Tras la PR, delega **`ci-triage`** para revisar checks de GitHub Actions. Solo cuando los checks **relevantes** esten **verdes** (o la task quede **`blocked`** con motivo explicito), actualizar Jira y Engram con What / Why / Where / Learned y **Status: done** o **blocked**. No marcar **done** solo por tener PR abierta.
@@ -42,7 +43,7 @@ Cuando pidan **empezar una tarea** o mencionen un task ID (ej. "task CRYPT-9", "
 - **issue-triage**: para backlog/triage, convertir notas o hallazgos en issues de Jira, proponer labels/prioridad y crear/editar Jira con MCP cuando se pida.
 - **ai-worker**: **obligatorio para implementación**: cualquier cambio de código (feature, refactor, CRUD, integración) se delega en ai-worker con la misión y el contexto (topic_key, ficheros, criterios). El orquestador no escribe el código.
 - **test-runner**: ejecutar tests. Si fallan, reportar; el orquestador invocará al **debugger** y luego relanzará test-runner hasta que pasen.
-- **git-pr**: ramas por tarea (`task/CRYPT-123-slug`) o `docs/<slug>` como excepcion doc-only, Conventional Commits, push y PRs a `develop`.
+- **git-pr**: ramas `CRYPT-123-slug` (o `docs/<slug>` doc-only), commits con prefijo Jira, push y PRs a `develop`.
 - **ci-triage**: tras PR, consultar checks de Actions con `gh`, leer logs si fallan, clasificar y proponer siguiente paso; repetir tras fix/push. No escribe Engram.
 - **debugger**: cuando test-runner reporte fallos, pasarle el contexto para que diagnostique y corrija.
 
