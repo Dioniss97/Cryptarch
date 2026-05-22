@@ -90,3 +90,13 @@ class Document:
     status: str  # queued | processing | indexed | error
     file_path: str | None = None
     id: str | None = None
+
+
+@dataclass
+class UserPreferences:
+    tenant_id: str
+    user_id: str
+    theme: str = "system"
+    language: str = "es"
+    table_density: str = "comfortable"
+    metadata: dict[str, Any] | None = None

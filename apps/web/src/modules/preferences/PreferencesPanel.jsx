@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../../shared/apiClient";
 import { ApiErrorBanner, LoadingBlock } from "../../shared/ui";
+import { applyTheme } from "./applyTheme";
 
 const DEFAULTS = {
   theme: "system",
@@ -22,12 +23,14 @@ export function PreferencesPanel() {
       setError(null);
       try {
         const data = (await api.get("/me/preferences")) || {};
+        const theme = data.theme || "system";
         setForm({
-          theme: data.theme || "system",
+          theme,
           language: data.language || "es",
           table_density: data.table_density || "comfortable",
           metadata: JSON.stringify(data.metadata || {}, null, 2),
         });
+        applyTheme(theme);
       } catch (nextError) {
         setError(nextError);
       } finally {
@@ -49,6 +52,7 @@ export function PreferencesPanel() {
         table_density: form.table_density,
         metadata: JSON.parse(form.metadata || "{}"),
       });
+      applyTheme(form.theme);
       setOk("Preferencias guardadas.");
     } catch (nextError) {
       setError(nextError);
@@ -58,8 +62,8 @@ export function PreferencesPanel() {
   }
 
   return (
-    <section className="panel">
-      <h2>Preferencias</h2>
+    <section className="preferences-panel">
+      <h2 className="preferences-panel-title">Preferencias</h2>
       {loading ? <LoadingBlock /> : null}
       <ApiErrorBanner error={error} />
       {ok ? <div className="badge success">{ok}</div> : null}
@@ -69,9 +73,11 @@ export function PreferencesPanel() {
             Theme
             <select
               value={form.theme}
-              onChange={(event) =>
-                setForm((prev) => ({ ...prev, theme: event.target.value }))
-              }
+              onChange={(event) => {
+                const theme = event.target.value;
+                setForm((prev) => ({ ...prev, theme }));
+                applyTheme(theme);
+              }}
             >
               <option value="system">system</option>
               <option value="light">light</option>

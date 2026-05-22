@@ -716,3 +716,56 @@ button.danger {
   background: #fbfcff;
   padding: 12px;
 }
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+:root[data-theme="dark"] body {
+  background: #12151c;
+  color: #e8ecf4;
+}
+
+:root[data-theme="dark"] .panel,
+:root[data-theme="dark"] .profile-popover {
+  background: #1a1f2a;
+  border-color: #2d3548;
+  color: #e8ecf4;
+}
+
+:root[data-theme="dark"] input,
+:root[data-theme="dark"] select,
+:root[data-theme="dark"] textarea {
+  background: #0f131a;
+  border-color: #3a4458;
+  color: #e8ecf4;
+}
+
+.profile-popover {
+  min-width: 280px;
+  max-width: 360px;
+  z-index: 20;
+}
+
+.profile-popover .preferences-panel {
+  margin: 0 0 8px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.profile-popover .preferences-panel-title {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+}
+
+.profile-popover .profile-logout {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.page-header-actions {
+  align-items: center;
+  gap: 8px;
+}

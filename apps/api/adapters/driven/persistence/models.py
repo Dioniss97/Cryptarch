@@ -153,6 +153,24 @@ class DocumentTagOrm(Base):
     tag_id = Column(UUID(as_uuid=False), ForeignKey("tags.id"), primary_key=True)
 
 
+class UserPreferencesOrm(Base):
+    __tablename__ = "user_preferences"
+    id = Column(UUID(as_uuid=False), primary_key=True, default=lambda: uuid.uuid4().hex)
+    tenant_id = Column(
+        UUID(as_uuid=False), ForeignKey("tenants.id"), nullable=False, index=True
+    )
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
+    theme = Column(String(32), nullable=False, default="system")
+    language = Column(String(32), nullable=False, default="es")
+    table_density = Column(String(32), nullable=False, default="comfortable")
+    metadata_ = Column("metadata", JSONB, nullable=True)
+    __table_args__ = (
+        UniqueConstraint(
+            "tenant_id", "user_id", name="uq_user_preferences_tenant_user"
+        ),
+    )
+
+
 # Transitional semantic aliases for Sprint 02.5 task-08a.
 # They intentionally point to the existing tables/models to keep
 # backward compatibility while introducing clearer domain naming.

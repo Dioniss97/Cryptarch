@@ -9,6 +9,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "format": "prettier --write \"src/**/*.{js,jsx,css}\" \"../../packages/shared/src/**/*.js\"",
     "format:check": "prettier --check \"src/**/*.{js,jsx,css}\" \"../../packages/shared/src/**/*.js\"",
     "lint": "eslint ."
@@ -30,6 +32,7 @@
     "eslint-plugin-react-hooks": "^5.1.0",
     "globals": "^15.14.0",
     "jsdom": "^28.1.0",
+    "@playwright/test": "^1.52.0",
     "prettier": "^3.4.2",
     "vite": "^6.0.7",
     "vitest": "^4.1.0"
